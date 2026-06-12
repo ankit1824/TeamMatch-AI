@@ -37,7 +37,7 @@ const INITIAL_STUDENTS = [
   { student_id: 10, name: "Aarav Mehta", dsa: 5, backend: 4, frontend: 9, ml: 2, uiux: 7, communication: 8, projects_count: 4, hackathons_count: 2, availability_hours: 18, skills: "Frontend, React", experience_level: "Intermediate" }
 ];
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://teammatch-ai-3luy.onrender.com";
 
 const getAvatar = (name, size = 40) => {
   const initial = name ? name.trim().charAt(0).toUpperCase() : '?';
