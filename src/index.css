@@ -495,3 +495,32 @@ p {
   font-weight: 800;
   color: var(--text-main);
 }
+
+/* --- LOGIN & AUTHENTICATION SCREEN STYLES --- */
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  padding: 2rem;
+}
+
+.auth-card {
+  width: 100%;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+}
+
+.auth-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.auth-card .form-group {
+  margin-bottom: 1.25rem;
+}
