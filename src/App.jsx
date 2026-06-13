@@ -9,10 +9,14 @@ import {
   Clock, 
   X, 
   AlertCircle, 
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  Mail,
+  User,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
-// Fallback Javascript Engines (Enables operation if Python server is not running)
 import { 
   SKILLS, 
   SKILL_LABELS, 
@@ -23,7 +27,6 @@ import {
   recommendTeammatesForTeam as localTeamRecs 
 } from './mlEngine';
 
-// Default static data (Original 5 + 5 realistic focus archetypes)
 const INITIAL_STUDENTS = [
   { student_id: 1, name: "Priya", dsa: 7, backend: 6, frontend: 9, ml: 3, uiux: 8, communication: 8, projects_count: 5, hackathons_count: 3, availability_hours: 20, skills: "WebDev, UI/UX", experience_level: "Intermediate" },
   { student_id: 2, name: "Riya", dsa: 5, backend: 4, frontend: 8, ml: 2, uiux: 9, communication: 7, projects_count: 4, hackathons_count: 2, availability_hours: 15, skills: "WebDev", experience_level: "Beginner" },
@@ -90,9 +93,18 @@ export default function App() {
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [teams, setTeams] = useState([]);
   const [backendActive, setBackendActive] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // Active Session user
 
-  // Load students & teams from Flask API on startup, fall back to LocalStorage/initials if offline
+  // Check LocalStorage for cache user session
   useEffect(() => {
+    const savedUser = localStorage.getItem('teammatch_user');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  // Sync Students & Teams from API
+  const refreshData = () => {
     fetch(`${API_BASE}/students`)
       .then(res => {
         if (!res.ok) throw new Error();
@@ -101,6 +113,16 @@ export default function App() {
       .then(data => {
         setStudents(data);
         setBackendActive(true);
+        // Sync the current user values from localStorage dynamically to prevent race conditions
+        const activeUserStr = localStorage.getItem('teammatch_user');
+        if (activeUserStr) {
+          const activeUser = JSON.parse(activeUserStr);
+          const updatedSelf = data.find(s => s.student_id === activeUser.student_id);
+          if (updatedSelf) {
+            setCurrentUser(updatedSelf);
+            localStorage.setItem('teammatch_user', JSON.stringify(updatedSelf));
+          }
+        }
       })
       .catch(() => {
         const saved = localStorage.getItem('teammatch_students');
@@ -114,7 +136,6 @@ export default function App() {
         return res.json();
       })
       .then(data => {
-        // Parse CSV string format if needed
         const parsedTeams = data.map(team => ({
           ...team,
           members: typeof team.members === 'string' ? team.members.split(',').map(Number) : team.members
@@ -125,26 +146,24 @@ export default function App() {
         const saved = localStorage.getItem('teammatch_teams');
         if (saved) setTeams(JSON.parse(saved));
       });
-  }, [activeTab]);
+  };
 
-  const handleAddStudent = (newStudent) => {
-    fetch(`${API_BASE}/students`, {
+  useEffect(() => {
+    refreshData();
+  }, [activeTab, currentUser]);
+
+  const handleUpdateProfile = (updatedStudent) => {
+    fetch(`${API_BASE}/students/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newStudent)
+      body: JSON.stringify(updatedStudent)
     })
     .then(res => {
       if (!res.ok) throw new Error();
-      return fetch(`${API_BASE}/students`);
-    })
-    .then(res => res.json())
-    .then(data => {
-      setStudents(data);
-      setBackendActive(true);
+      refreshData();
     })
     .catch(() => {
-      const nextId = students.length > 0 ? Math.max(...students.map(s => s.student_id)) + 1 : 1;
-      const updated = [...students, { ...newStudent, student_id: nextId }];
+      const updated = students.map(s => s.student_id === updatedStudent.student_id ? updatedStudent : s);
       setStudents(updated);
       localStorage.setItem('teammatch_students', JSON.stringify(updated));
     });
@@ -210,6 +229,18 @@ export default function App() {
       });
   };
 
+  // Switch to login if user not authenticated
+  if (!currentUser) {
+    return (
+      <AuthScreen 
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('teammatch_user', JSON.stringify(user));
+        }} 
+      />
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Sidebar */}
@@ -240,11 +271,11 @@ export default function App() {
             </li>
             <li>
               <button 
-                className={`nav-button ${activeTab === 'register' ? 'active' : ''}`}
-                onClick={() => setActiveTab('register')}
+                className={`nav-button ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => setActiveTab('profile')}
               >
                 <UserPlus size={16} />
-                Add Profile
+                My Profile
               </button>
             </li>
             <li>
@@ -265,12 +296,37 @@ export default function App() {
                 Team Builder
               </button>
             </li>
+            
+            <li style={{ marginTop: '2rem' }}>
+              <button 
+                className="nav-button"
+                onClick={() => {
+                  setCurrentUser(null);
+                  localStorage.removeItem('teammatch_user');
+                  setActiveTab('dashboard');
+                }}
+                style={{ color: 'var(--error)' }}
+              >
+                <X size={16} />
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
-        {/* API connection status pill */}
-        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: backendActive ? 'var(--secondary)' : 'var(--error)' }}></span>
-          {backendActive ? "Python ML Active" : "Local Mode"}
+        
+        {/* Logged in User Indicator */}
+        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            {getAvatar(currentUser.name, 32)}
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '0.8rem', color: 'var(--text-main)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{currentUser.name}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{currentUser.email}</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: backendActive ? 'var(--secondary)' : 'var(--error)' }}></span>
+            {backendActive ? "Python ML Active" : "Local Mode"}
+          </div>
         </div>
       </aside>
 
@@ -282,16 +338,238 @@ export default function App() {
         {activeTab === 'directory' && (
           <DirectoryTab students={students} />
         )}
-        {activeTab === 'register' && (
-          <RegisterTab onAddStudent={handleAddStudent} onRedirect={() => setActiveTab('directory')} />
+        {activeTab === 'profile' && (
+          <ProfileTab currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />
         )}
         {activeTab === 'matcher' && (
-          <MatcherTab students={students} />
+          <MatcherTab students={students} currentUser={currentUser} />
         )}
         {activeTab === 'analyzer' && (
           <AnalyzerTab students={students} onSaveTeam={handleSaveTeam} />
         )}
       </main>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// COMPONENT: AUTHENTICATION SCREEN (LOGIN & REGISTER)
+// -------------------------------------------------------------
+function AuthScreen({ onAuthSuccess }) {
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Registration Profile Details
+  const [experience, setExperience] = useState('Intermediate');
+  const [avail, setAvail] = useState(15);
+  const [dsa, setDsa] = useState(5);
+  const [backend, setBackend] = useState(5);
+  const [frontend, setFrontend] = useState(5);
+  const [ml, setMl] = useState(5);
+  const [uiux, setUiux] = useState(5);
+  const [comm, setComm] = useState(6);
+  const [skillsText, setSkillsText] = useState('');
+
+  const handleAuth = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!email.trim() || !password.trim()) {
+      setError('Please fill in credentials.');
+      return;
+    }
+
+    if (isRegister && !name.trim()) {
+      setError('Name is required for registration.');
+      return;
+    }
+
+    const endpoint = isRegister ? 'register' : 'login';
+    const payload = isRegister ? {
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      experience_level: experience,
+      availability_hours: parseInt(avail),
+      dsa: parseInt(dsa),
+      backend: parseInt(backend),
+      frontend: parseInt(frontend),
+      ml: parseInt(ml),
+      uiux: parseInt(uiux),
+      communication: parseInt(comm),
+      skills: skillsText.trim() || 'Generalist',
+      projects_count: 0,
+      hackathons_count: 0
+    } : {
+      email: email.trim(),
+      password
+    };
+
+    fetch(`${API_BASE}/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Authentication failed.');
+      }
+      return data;
+    })
+    .then(data => {
+      onAuthSuccess(data.student);
+    })
+    .catch(err => {
+      setError(err.message);
+    });
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card" style={{ maxWidth: isRegister ? '650px' : '400px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <span style={{ fontSize: '2.5rem' }}>🤝</span>
+          <h2 style={{ marginTop: '0.5rem' }}>TeamMatch AI</h2>
+          <p style={{ fontSize: '0.85rem' }}>{isRegister ? 'Create profile & set up ML parameters' : 'Sign in to access matcher and builder'}</p>
+        </div>
+
+        {error && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.05)', color: 'var(--error)', border: '1px solid var(--error)', padding: '10px 14px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleAuth}>
+          {isRegister && (
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <div style={{ position: 'relative' }}>
+                <User size={16} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
+                <input type="text" className="form-input" style={{ paddingLeft: '38px' }} placeholder="e.g. Aman Gupta" value={name} onChange={e => setName(e.target.value)} required />
+              </div>
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={16} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
+              <input type="email" className="form-input" style={{ paddingLeft: '38px' }} placeholder="e.g. aman@college.edu" value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: isRegister ? '1.5rem' : '2rem' }}>
+            <label className="form-label">Password</label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
+              <input 
+                type={showPassword ? "text" : "password"} 
+                className="form-input" 
+                style={{ paddingLeft: '38px', paddingRight: '40px' }} 
+                placeholder="Minimum 6 characters" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '15px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {isRegister && (
+            <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+              <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Teammate Matching Questionnaire</h4>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Experience Level</label>
+                  <select className="custom-select" value={experience} onChange={e => setExperience(e.target.value)}>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Weekly Commitment</label>
+                  <div className="slider-container" style={{ marginTop: '0.6rem' }}>
+                    <input type="range" min="5" max="40" step="5" value={avail} onChange={e => setAvail(e.target.value)} />
+                    <span className="slider-val">{avail}h</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', margin: '1rem 0' }}>
+                {Object.keys(SKILL_LABELS).map(key => {
+                  const val = key === 'dsa' ? dsa : key === 'backend' ? backend : key === 'frontend' ? frontend : key === 'ml' ? ml : uiux;
+                  const setter = key === 'dsa' ? setDsa : key === 'backend' ? setBackend : key === 'frontend' ? setFrontend : key === 'ml' ? setMl : setUiux;
+                  return (
+                    <div key={key}>
+                      <label className="form-label" style={{ fontSize: '0.7rem' }}>{SKILL_LABELS[key]}</label>
+                      <div className="slider-container" style={{ height: '30px' }}>
+                        <input type="range" min="1" max="10" value={val} onChange={e => setter(e.target.value)} />
+                        <span className="slider-val">{val}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Communication Skill (1 - 10)</label>
+                <div className="slider-container">
+                  <input type="range" min="1" max="10" value={comm} onChange={e => setComm(e.target.value)} />
+                  <span className="slider-val">{comm}</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Tech Stack Keywords (comma-separated)</label>
+                <input type="text" className="form-input" placeholder="e.g. PyTorch, React, SQL, Node" value={skillsText} onChange={e => setSkillsText(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          <button type="submit" className="btn-primary" style={{ width: '100%' }}>
+            {isRegister ? 'Register and Enter' : 'Sign In'}
+          </button>
+        </form>
+
+        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--text-muted)' }}>
+            {isRegister ? 'Already registered?' : "Don't have a profile yet?"}{' '}
+          </span>
+          <button 
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setError('');
+            }}
+            style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
+          >
+            {isRegister ? 'Login here' : 'Register now'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -444,11 +722,9 @@ function DirectoryTab({ students }) {
       return matchesExp && matchesHours;
     }
 
-    // 1. Text-based search on name and skills string
     let matchesSearch = s.name.toLowerCase().includes(query) || 
                          (s.skills && s.skills.toLowerCase().includes(query));
 
-    // 2. Semantic matching for core domain metrics (score >= 7)
     if (query === 'dsa' || query === 'data structures' || query === 'algorithms' || query === 'problem solving') {
       matchesSearch = matchesSearch || (s.dsa >= 7);
     } else if (query === 'ml' || query === 'ai' || query === 'machine learning' || query === 'artificial intelligence') {
@@ -572,21 +848,21 @@ function DirectoryTab({ students }) {
 }
 
 // -------------------------------------------------------------
-// TAB 3: REGISTER PROFILE
+// TAB 3: MY PROFILE / UPGRADE AND EDIT
 // -------------------------------------------------------------
-function RegisterTab({ onAddStudent, onRedirect }) {
-  const [name, setName] = useState('');
-  const [experience, setExperience] = useState('Intermediate');
-  const [avail, setAvail] = useState(15);
-  const [dsa, setDsa] = useState(5);
-  const [backend, setBackend] = useState(5);
-  const [frontend, setFrontend] = useState(5);
-  const [ml, setMl] = useState(5);
-  const [uiux, setUiux] = useState(5);
-  const [comm, setComm] = useState(6);
-  const [projects, setProjects] = useState(2);
-  const [hacks, setHacks] = useState(1);
-  const [skillsText, setSkillsText] = useState('');
+function ProfileTab({ currentUser, onUpdateProfile }) {
+  const [name, setName] = useState(currentUser.name || '');
+  const [experience, setExperience] = useState(currentUser.experience_level || 'Intermediate');
+  const [avail, setAvail] = useState(currentUser.availability_hours || 15);
+  const [dsa, setDsa] = useState(currentUser.dsa || 5);
+  const [backend, setBackend] = useState(currentUser.backend || 5);
+  const [frontend, setFrontend] = useState(currentUser.frontend || 5);
+  const [ml, setMl] = useState(currentUser.ml || 5);
+  const [uiux, setUiux] = useState(currentUser.uiux || 5);
+  const [comm, setComm] = useState(currentUser.communication || 6);
+  const [projects, setProjects] = useState(currentUser.projects_count || 0);
+  const [hacks, setHacks] = useState(currentUser.hackathons_count || 0);
+  const [skillsText, setSkillsText] = useState(currentUser.skills || '');
   const [msg, setMsg] = useState(null);
 
   const handleSubmit = (e) => {
@@ -596,7 +872,8 @@ function RegisterTab({ onAddStudent, onRedirect }) {
       return;
     }
 
-    const newStudent = {
+    const updatedUser = {
+      student_id: currentUser.student_id,
       name: name.trim(),
       experience_level: experience,
       availability_hours: parseInt(avail),
@@ -611,19 +888,16 @@ function RegisterTab({ onAddStudent, onRedirect }) {
       skills: skillsText.trim() || 'Generalist'
     };
 
-    onAddStudent(newStudent);
-    setMsg({ type: 'success', text: `Profile created. Loading directory...` });
-    
-    setTimeout(() => {
-      onRedirect();
-    }, 1200);
+    onUpdateProfile(updatedUser);
+    setMsg({ type: 'success', text: `Profile details upgraded successfully!` });
+    setTimeout(() => setMsg(null), 3000);
   };
 
   return (
     <div>
       <header className="tab-header">
-        <h1>Register Profile</h1>
-        <p>Register your focus areas and self-evaluated capabilities to match with other teams.</p>
+        <h1>My Profile Upgrades</h1>
+        <p>Edit your self-evaluated skill parameters, commitment settings, and technical tags.</p>
       </header>
 
       {msg && (
@@ -648,7 +922,7 @@ function RegisterTab({ onAddStudent, onRedirect }) {
 
       <form onSubmit={handleSubmit} className="profile-form">
         <h3 style={{ marginBottom: '2rem', fontWeight: 700, fontSize: '1.35rem' }}>
-          Profile Questionnaire
+          Upgrade Profile Metrics
         </h3>
 
         <div className="form-group">
@@ -656,7 +930,6 @@ function RegisterTab({ onAddStudent, onRedirect }) {
           <input 
             type="text" 
             className="form-input" 
-            placeholder="e.g. Priyanshu Sharma"
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -739,7 +1012,7 @@ function RegisterTab({ onAddStudent, onRedirect }) {
               className="form-input" 
               min="0"
               value={projects}
-              onChange={e => setProjects(e.target.value)}
+              onChange={e => setProjects(parseInt(e.target.value) || 0)}
             />
           </div>
           <div className="form-group">
@@ -749,7 +1022,7 @@ function RegisterTab({ onAddStudent, onRedirect }) {
               className="form-input" 
               min="0"
               value={hacks}
-              onChange={e => setHacks(e.target.value)}
+              onChange={e => setHacks(parseInt(e.target.value) || 0)}
             />
           </div>
         </div>
@@ -765,23 +1038,22 @@ function RegisterTab({ onAddStudent, onRedirect }) {
           />
         </div>
 
-        <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>Create Profile</button>
+        <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>Upgrade Profile</button>
       </form>
     </div>
   );
 }
 
 // -------------------------------------------------------------
-// TAB 4: MATCHER (INTEGRATED WITH PYTHON ML BACKEND)
+// TAB 4: MATCHER
 // -------------------------------------------------------------
-function MatcherTab({ students }) {
-  const [selectedUser, setSelectedUser] = useState(students[0]?.student_id || '');
+function MatcherTab({ students, currentUser }) {
+  const [selectedUser, setSelectedUser] = useState(currentUser?.student_id?.toString() || students[0]?.student_id?.toString() || '');
   const [selectedPartner, setSelectedPartner] = useState('');
   const [recs, setRecs] = useState([]);
 
   const targetStudent = students.find(s => s.student_id === parseInt(selectedUser));
 
-  // Query Python KNN Model when selected student changes
   useEffect(() => {
     if (selectedUser) {
       fetch(`${API_BASE}/recommend`, {
@@ -795,7 +1067,6 @@ function MatcherTab({ students }) {
         if (data.length > 0) setSelectedPartner(data[0].student.student_id.toString());
       })
       .catch(() => {
-        // Local Javascript fallback if server is offline
         const fallback = localStudentRecs(parseInt(selectedUser), students, 5);
         setRecs(fallback.map(f => ({ student: f.student, compatibility_score: f.compatibilityScore })));
         if (fallback.length > 0) setSelectedPartner(fallback[0].student.student_id.toString());
@@ -931,7 +1202,7 @@ function MatcherTab({ students }) {
               setSelectedPartner('');
             }}
           >
-            {students.map(s => <option key={s.student_id} value={s.student_id}>{s.name}</option>)}
+            {students.map(s => <option key={s.student_id} value={s.student_id}>{s.name} {s.student_id === currentUser.student_id ? "(You)" : ""}</option>)}
           </select>
         </div>
       </div>
@@ -1021,6 +1292,20 @@ function MatcherTab({ students }) {
                       return <p>• <b>Overlapping specializations</b>: Both developers share a primary strength in <b>{SKILL_LABELS[uMax]}</b>. Tasks must be split clearly.</p>;
                     }
                   })()}
+                  
+                  {/* Shared tech stack overlaps check */}
+                  {(() => {
+                    const tSkills = targetStudent.skills ? targetStudent.skills.split(',').map(s => s.trim().toLowerCase()) : [];
+                    const pSkills = partnerStudent.skills ? partnerStudent.skills.split(',').map(s => s.trim().toLowerCase()) : [];
+                    const overlap = tSkills.filter(s => pSkills.includes(s) && s !== 'generalist' && s !== '');
+                    if (overlap.length > 0) {
+                      const displayOverlap = overlap.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ');
+                      return <p>• <b>Shared Tools & Tech Stack</b>: Both developers have experience in: <b>{displayOverlap}</b>.</p>;
+                    } else {
+                      return <p>• <b>Tool Stack Diversity</b>: No overlapping specific libraries/frameworks listed (comparing <i>"{targetStudent.skills}"</i> and <i>"{partnerStudent.skills}"</i>), which expands your team's technical versatility.</p>;
+                    }
+                  })()}
+
                   {Math.abs(targetStudent.availability_hours - partnerStudent.availability_hours) <= 5 ? (
                     <p>• <b>Time commitment alignment</b>: Schedule compatibility is high, with similar target weekly hours.</p>
                   ) : (
@@ -1037,7 +1322,7 @@ function MatcherTab({ students }) {
 }
 
 // -------------------------------------------------------------
-// TAB 5: TEAM BUILDER (INTEGRATED WITH PYTHON DECISION LOGIC)
+// TAB 5: TEAM BUILDER
 // -------------------------------------------------------------
 function AnalyzerTab({ students, onSaveTeam }) {
   const [selectedIds, setSelectedIds] = useState([]);
@@ -1046,14 +1331,12 @@ function AnalyzerTab({ students, onSaveTeam }) {
   const [showRecs, setShowRecs] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
 
-  // States loaded from Python API
   const [health, setHealth] = useState({ health_score: 0, technical_coverage: 0, role_diversity: 0, availability_coordination: 0, communication_strength: 0 });
   const [gaps, setGaps] = useState([]);
   const [candidateRecs, setCandidateRecs] = useState([]);
 
   const teamMembers = students.filter(s => selectedIds.includes(s.student_id));
 
-  // Query Python API for team health and gaps when roster changes
   useEffect(() => {
     if (selectedIds.length > 0) {
       fetch(`${API_BASE}/team-health`, {
@@ -1067,7 +1350,6 @@ function AnalyzerTab({ students, onSaveTeam }) {
         setGaps(data.gaps);
       })
       .catch(() => {
-        // Fallback to local JS calculation
         const localH = localTeamHealth(teamMembers);
         const localG = localSkillGaps(teamMembers);
         setHealth({
@@ -1087,7 +1369,6 @@ function AnalyzerTab({ students, onSaveTeam }) {
     setShowRecs(false);
   }, [selectedIds, students]);
 
-  // Query Python API for gap recruits
   const fetchMissingPiece = () => {
     if (selectedIds.length === 0) return;
     
@@ -1102,7 +1383,6 @@ function AnalyzerTab({ students, onSaveTeam }) {
       setShowRecs(true);
     })
     .catch(() => {
-      // Local fallback
       const localR = localTeamRecs(selectedIds, students, 4);
       setCandidateRecs(localR.map(l => ({
         student: l.student,
