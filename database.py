@@ -20,6 +20,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS students (
         student_id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        email TEXT UNIQUE,
+        password_hash TEXT,
         dsa INTEGER NOT NULL,
         backend INTEGER NOT NULL,
         frontend INTEGER NOT NULL,
@@ -35,6 +37,16 @@ def init_db():
     )
     """)
     
+    # Add email and password_hash columns dynamically if database already exists
+    try:
+        cursor.execute("ALTER TABLE students ADD COLUMN email TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE students ADD COLUMN password_hash TEXT")
+    except sqlite3.OperationalError:
+        pass
+        
     # Create teams table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS teams (
@@ -69,21 +81,48 @@ def get_all_students():
     conn.close()
     return students
 
+def get_student_by_email(email):
+    """Fetches a student profile by their email address."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM students WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
 def add_student(s):
     """Registers a new student profile."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
     INSERT INTO students (
-        name, dsa, backend, frontend, ml, uiux, 
+        name, email, password_hash, dsa, backend, frontend, ml, uiux, 
         experience_level, projects_count, hackathons_count, 
         availability_hours, skills, communication, cluster_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        s['name'], s['dsa'], s['backend'], s['frontend'], s['ml'], s['uiux'],
+        s['name'], s.get('email'), s.get('password_hash'), s['dsa'], s['backend'], s['frontend'], s['ml'], s['uiux'],
         s['experience_level'], s.get('projects_count', 0), s.get('hackathons_count', 0),
         s.get('availability_hours', 15), s.get('skills', 'Generalist'), s['communication'],
         s.get('cluster_id', -1)
+    ))
+    conn.commit()
+    conn.close()
+
+def update_student(student_id, s):
+    """Updates an existing student profile in SQLite."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    UPDATE students SET 
+        name = ?, dsa = ?, backend = ?, frontend = ?, ml = ?, uiux = ?, 
+        experience_level = ?, projects_count = ?, hackathons_count = ?, 
+        availability_hours = ?, skills = ?, communication = ?
+    WHERE student_id = ?
+    """, (
+        s['name'], s['dsa'], s['backend'], s['frontend'], s['ml'], s['uiux'],
+        s['experience_level'], s['projects_count'], s['hackathons_count'],
+        s['availability_hours'], s['skills'], s['communication'], student_id
     ))
     conn.commit()
     conn.close()
