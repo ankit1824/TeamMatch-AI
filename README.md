@@ -6,7 +6,7 @@ TeamMatch AI is a full-stack **Machine Learning-driven Matchmaking & Grouping pl
 
 ## 🧠 Machine Learning Architecture & Core Pipelines
 
-Instead of arbitrary scoring rules, the entire matching and gap analysis system is driven by standard, dynamic machine learning models:
+Instead of manual scoring rules, the entire matching and gap analysis system is driven by standard, dynamic machine learning models:
 
 ### 1. Complementary Recommender: K-Nearest Neighbors (KNN)
 * **Goal**: Find the top N complementary developers for a given user profile.
@@ -26,7 +26,7 @@ Instead of arbitrary scoring rules, the entire matching and gap analysis system 
   * **Cluster 2**: *Backend & Systems Engineers* (High Backend & DSA stats).
 * **Role Diversity Score**: The diversity of a drafted team is evaluated based on the K-Means cluster labels of its members:
   $$\text{Role Diversity} = \frac{\text{Unique Clusters Represented}}{\min(3, \text{Team Size})} \times 100\%$$
-* **Deficit Gaps**: Triggers a critical alert if any of the three K-Means clusters are unrepresented in the team, recommending specific candidates from the missing cluster.
+* **Deficit Alarms**: Triggers a critical alert if any of the three K-Means clusters are unrepresented in the team, recommending specific candidates from the missing cluster.
 
 ---
 
@@ -35,14 +35,14 @@ Instead of arbitrary scoring rules, the entire matching and gap analysis system 
 The application uses **SQLite** (`data/teammatch.db`) to store profiles and rosters:
 
 * **`students` Table**: Stores name, skills description, commitment hours, communication score, 5 skill metrics, and K-Means `cluster_id`.
-* **`teams` Table**: Stores saved team rosters including names, descriptions, members (comma-separated student IDs), and health scores.
+* **`teams` Table**: Stores saved team assemblies, including member lists (comma-separated student IDs) and readiness scores.
 
 ---
 
 ## 🛠️ Technology Stack
 
-* **Frontend**: React
-* **Backend**: Python FastAPI, Uvicorn 
+* **Frontend**: React (Vite, CSS Modules, Lucide Icons, SVG spider charts)
+* **Backend**: Python FastAPI, Uvicorn (ASGI web server)
 * **Database**: SQLite Relational DBMS
 * **Machine Learning**: Scikit-Learn (`MinMaxScaler`, `KMeans`, `NearestNeighbors`), Pandas, NumPy
 
@@ -60,3 +60,37 @@ The application uses **SQLite** (`data/teammatch.db`) to store profiles and rost
    python -m venv .venv
    .venv\Scripts\activate      # On Windows
    source .venv/bin/activate   # On Mac/Linux
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Seed the SQLite database and run initial clustering:
+   ```bash
+   python generate_dataset.py
+   ```
+4. Start the FastAPI server:
+   ```bash
+   python app.py
+   ```
+   *The API will start running on `http://127.0.0.1:5000`.*
+
+### Step 2: Set Up React Frontend
+1. Open a new terminal in the project directory.
+2. Install npm dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *Open `http://localhost:5173/` in your browser to access the application.*
+
+---
+
+## 🌐 Production Deployment
+
+* **Backend API**: Deployed on **Render.com** (as a Python Web Service running Uvicorn).
+* **Frontend UI**: Deployed on **Vercel.com** (built and hosted as a static Vite application).
+* **Interactive Docs**: FastAPI automatically generates interactive Swagger API documentation at `http://YOUR_API_URL/docs` for testing endpoints.
