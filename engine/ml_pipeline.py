@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from database import get_all_students
 
@@ -44,18 +45,35 @@ def prepare_features(students_list):
 def run_ml_pipeline(students_list):
     """
     Fits MinMaxScaler and K-Means Clustering on the student population.
-    Segments students into 3 clusters:
-      - Cluster 0: AI/ML Developer archetype
-      - Cluster 1: Frontend & UI/UX Developer archetype
-      - Cluster 2: Backend & Systems Developer archetype
-    Returns K-Means model, cluster labels, and scaled features.
+    Dynamically selects the optimal number of clusters K using the Silhouette Score.
+    Returns K-Means model, cluster labels, scaled features, and the MinMaxScaler.
     """
     df, scaled_features, scaler = prepare_features(students_list)
+    
     if len(df) < 3:
         # Fallback if too few students
-        return None, np.zeros(len(df)), scaled_features, scaler
+        k = 2 if len(df) == 2 else 1
+        if k == 1:
+            return None, np.zeros(len(df)), scaled_features, scaler
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        cluster_labels = kmeans.fit_predict(scaled_features)
+        return kmeans, cluster_labels, scaled_features, scaler
         
-    kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+    best_k = 3
+    best_score = -1.0
+    max_k = min(8, len(df) - 1)
+    
+    # Evaluate K from 2 to max_k using Silhouette Score
+    for k in range(2, max_k + 1):
+        kmeans_temp = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels_temp = kmeans_temp.fit_predict(scaled_features)
+        
+        score = silhouette_score(scaled_features, labels_temp)
+        if score > best_score:
+            best_score = score
+            best_k = k
+            
+    kmeans = KMeans(n_clusters=best_k, random_state=42, n_init=10)
     cluster_labels = kmeans.fit_predict(scaled_features)
     
     return kmeans, cluster_labels, scaled_features, scaler
@@ -123,7 +141,7 @@ def get_recommendations(student_id, top_n=5, metric='cosine'):
         
     return sorted(recommendations, key=lambda x: x['compatibility_score'], reverse=True)
 
-def calculate_ml_team_health(team_members):
+def calculate_ml_team_health(team_members, student_cluster_map=None, k_val=3, students=None, kmeans=None, cluster_labels=None):
     """
     ML Team Health diagnostics using K-Means Clustering labels to grade
     diversity and identify unrepresented archetype gaps.
@@ -140,15 +158,17 @@ def calculate_ml_team_health(team_members):
             "gaps": []
         }
         
-    students = get_all_students()
-    
     # 1. Fit clustering on developer population to assign clusters
-    kmeans, cluster_labels, _, _ = run_ml_pipeline(students)
-    
-    # Create lookup map for student clusters
-    student_cluster_map = {}
-    for idx, s in enumerate(students):
-        student_cluster_map[s['student_id']] = int(cluster_labels[idx]) if kmeans else 1
+    if student_cluster_map is None:
+        if students is None:
+            students = get_all_students()
+        kmeans_model, labels, _, _ = run_ml_pipeline(students)
+        student_cluster_map = {}
+        for idx, s in enumerate(students):
+            student_cluster_map[s['student_id']] = int(labels[idx]) if kmeans_model else 1
+        k_val = kmeans_model.n_clusters if kmeans_model else 3
+        cluster_labels = labels
+        kmeans = kmeans_model
         
     # Map team members to their assigned K-Means clusters
     team_clusters = [student_cluster_map.get(m['student_id'], 1) for m in team_members]
@@ -157,7 +177,7 @@ def calculate_ml_team_health(team_members):
     
     # Unsupervised Diversity score: higher when members span multiple K-Means clusters
     if n_members > 1:
-        role_diversity = (unique_clusters / min(3, n_members)) * 100
+        role_diversity = (unique_clusters / min(k_val, n_members)) * 100
     else:
         role_diversity = 100.0
         
@@ -193,18 +213,35 @@ def calculate_ml_team_health(team_members):
     
     # 5. ML-driven deficit alarms based on unrepresented K-Means clusters
     gaps = []
-    cluster_labels_map = {
-        0: {"label": "Machine Learning / AI", "desc": "AI/ML Developer archetype (Cluster 0)"},
-        1: {"label": "Frontend & UI/UX", "desc": "Frontend & UI/UX Developer archetype (Cluster 1)"},
-        2: {"label": "Backend & Systems", "desc": "Backend & Systems Developer archetype (Cluster 2)"}
-    }
-    
-    if kmeans:
-        for cid in [0, 1, 2]:
+    cluster_profiles = {}
+    if kmeans is not None and cluster_labels is not None:
+        if students is None:
+            students = get_all_students()
+        # Group student dictionaries by their cluster label and build profiles dynamically
+        for cid in range(k_val):
+            cluster_members = [students[idx] for idx, label in enumerate(cluster_labels) if int(label) == cid]
+            if cluster_members:
+                avg_scores = {s: np.mean([float(m.get(s, 0)) for m in cluster_members]) for s in SKILLS}
+                dominant_skill = max(avg_scores, key=avg_scores.get)
+                label = SKILL_LABELS[dominant_skill]
+                desc = f"{label} Specialist archetype (Cluster {cid})"
+                cluster_profiles[cid] = {
+                    "label": label,
+                    "desc": desc,
+                    "key_skill": dominant_skill
+                }
+            else:
+                cluster_profiles[cid] = {
+                    "label": "General Developer",
+                    "desc": f"General Developer archetype (Cluster {cid})",
+                    "key_skill": "dsa"
+                }
+
+        # Check for unrepresented clusters
+        for cid in range(k_val):
             if cid not in team_clusters:
-                meta = cluster_labels_map[cid]
-                # Identify maximum team value in this cluster's key skill to customize message
-                key_skill = 'ml' if cid == 0 else ('frontend' if cid == 1 else 'backend')
+                meta = cluster_profiles[cid]
+                key_skill = meta["key_skill"]
                 max_team_val = max(int(m.get(key_skill, 0)) for m in team_members)
                 
                 gaps.append({
@@ -228,7 +265,7 @@ def calculate_ml_team_health(team_members):
         },
         "gaps": gaps
     }
-
+ 
 def get_ml_team_recommendations(team_member_ids, top_n=4):
     """
     Roster Optimizer suggestions using K-Means and KNN. Simulates adding candidate developers
@@ -241,7 +278,21 @@ def get_ml_team_recommendations(team_member_ids, top_n=4):
     if not team_members:
         return []
         
-    baseline = calculate_ml_team_health(team_members)
+    # Pre-run clustering once for the entire optimizer execution
+    kmeans, cluster_labels, _, _ = run_ml_pipeline(students)
+    student_cluster_map = {}
+    for idx, s in enumerate(students):
+        student_cluster_map[s['student_id']] = int(cluster_labels[idx]) if kmeans else 1
+    k_val = kmeans.n_clusters if kmeans else 3
+    
+    baseline = calculate_ml_team_health(
+        team_members,
+        student_cluster_map=student_cluster_map,
+        k_val=k_val,
+        students=students,
+        kmeans=kmeans,
+        cluster_labels=cluster_labels
+    )
     baseline_score = baseline['health']['health_score']
     
     recommendations = []
@@ -251,7 +302,14 @@ def get_ml_team_recommendations(team_member_ids, top_n=4):
             continue
             
         simulated_team = team_members + [s]
-        simulated_health = calculate_ml_team_health(simulated_team)
+        simulated_health = calculate_ml_team_health(
+            simulated_team,
+            student_cluster_map=student_cluster_map,
+            k_val=k_val,
+            students=students,
+            kmeans=kmeans,
+            cluster_labels=cluster_labels
+        )
         health_gain = simulated_health['health']['health_score'] - baseline_score
         
         recommendations.append({
