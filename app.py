@@ -285,21 +285,26 @@ async def api_team_recommend(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/teams")
-async def api_get_teams():
-    """Retrieves saved team rosters from SQLite database."""
+async def api_get_teams(request: Request):
+    """Retrieves saved team assemblies associated with the authenticated user."""
     try:
-        teams = get_all_teams()
+        user_id = get_user_id_from_header(request)
+        teams_list = get_all_teams()
         formatted_teams = []
-        for t in teams:
-            members_str = t['members']
-            formatted_teams.append({
-                "team_id": t['team_id'],
-                "team_name": t['team_name'],
-                "description": t['description'],
-                "health_score": t['health_score'],
-                "members": [int(mid) for mid in members_str.split(',') if mid],
-                "created_at": t['created_at']
-            })
+        for t in teams_list:
+            members_str = t.get('members') or ''
+            member_ids = [int(mid) for mid in members_str.split(',') if mid]
+            
+            # Filter: only show the team if the logged-in user is a member of it!
+            if user_id in member_ids:
+                formatted_teams.append({
+                    "id": t["team_id"],
+                    "team_name": t["team_name"],
+                    "description": t["description"],
+                    "health_score": t["health_score"],
+                    "members": member_ids,
+                    "created_at": t['created_at']
+                })
         return formatted_teams
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
