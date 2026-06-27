@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   User, School, Code, Briefcase, Star, Filter, X,
   Search, Github, Linkedin, Mail, Zap,
-  ChevronDown, ChevronUp, Users, RefreshCw, Phone, CheckCircle2
+  ChevronDown, ChevronUp, Users, RefreshCw, Phone, CheckCircle2, AlertCircle
 } from "lucide-react";
 
 // ─── Typedefs ────────────────────────────────────────────────────────────────
@@ -67,7 +67,14 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
   };
 
   const matchPct = teammate.matchPercentage || 0;
-  const matchColor = matchPct >= 80 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : matchPct >= 60 ? "text-blue-600 bg-blue-50 border-blue-200" : "text-amber-600 bg-amber-50 border-amber-200";
+  const matchColor = isTeamSuggestion
+    ? "text-purple-300 bg-purple-950/40 border-purple-800/40"
+    : matchPct >= 80
+      ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+      : matchPct >= 60
+        ? "text-blue-600 bg-blue-50 border-blue-200"
+        : "text-amber-600 bg-amber-50 border-amber-200";
+
   const ringColor = matchPct >= 80 ? "#10b981" : matchPct >= 60 ? "#2563eb" : "#f59e0b";
 
   return (
@@ -77,10 +84,14 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -3 }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.1)] transition-all flex flex-col overflow-hidden"
+      className={`rounded-2xl border transition-all flex flex-col overflow-hidden ${
+        isTeamSuggestion
+          ? "bg-slate-950/60 border-slate-850/80 shadow-[0_8px_30px_rgb(0,0,0,0.3)] text-white hover:shadow-[0_8px_30px_rgb(99,102,241,0.15)] hover:border-indigo-500/30"
+          : "bg-white border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.1)] hover:border-blue-100"
+      }`}
     >
       {isTeamSuggestion && teammate.suggestedFor && (
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1.5 text-xs font-bold text-white flex items-center gap-1.5">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 text-xs font-bold text-white flex items-center gap-1.5">
           <Users size={12} /> Suggested as {teammate.suggestedFor}
         </div>
       )}
@@ -100,8 +111,8 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
               )}
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-base leading-tight">{teammate.full_name || "Anonymous"}</h3>
-              <div className="flex items-center gap-1 text-slate-500 text-xs mt-0.5">
+              <h3 className={`font-bold text-base leading-tight ${isTeamSuggestion ? "text-slate-100" : "text-slate-900"}`}>{teammate.full_name || "Anonymous"}</h3>
+              <div className={`flex items-center gap-1 text-xs mt-0.5 ${isTeamSuggestion ? "text-slate-400" : "text-slate-500"}`}>
                 <School size={11} />
                 <span className="truncate max-w-[150px]">{teammate.college || "No college"}</span>
               </div>
@@ -118,10 +129,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* Meta */}
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
-          <span className="flex items-center gap-1 text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+          <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs ${
+            isTeamSuggestion
+              ? "text-slate-300 bg-slate-800/50 border-slate-700/50"
+              : "text-slate-500 bg-slate-50 border-slate-100"
+          }`}>
             <Briefcase size={11} /> {teammate.preferred_role}
           </span>
-          <span className="flex items-center gap-1 text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+          <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs ${
+            isTeamSuggestion
+              ? "text-slate-300 bg-slate-800/50 border-slate-700/50"
+              : "text-slate-500 bg-slate-50 border-slate-100"
+          }`}>
             <AvailBadge status={teammate.availability} />
           </span>
         </div>
@@ -144,7 +163,9 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* AI Insight */}
         {teammate.explanation && (
-          <p className="text-slate-500 text-xs leading-relaxed italic mb-4 border-l-2 border-slate-200 pl-2.5">
+          <p className={`text-xs leading-relaxed italic mb-4 border-l-2 pl-2.5 ${
+            isTeamSuggestion ? "text-slate-400 border-slate-750" : "text-slate-500 border-slate-200"
+          }`}>
             "{teammate.explanation}"
           </p>
         )}
@@ -155,12 +176,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Skills</p>
             <div className="flex flex-wrap gap-1">
               {skills.slice(0, 5).map(s => (
-                <span key={s} className="px-2.5 py-1 bg-slate-50 text-slate-600 rounded-lg border border-slate-100 text-xs font-semibold">
+                <span key={s} className={`px-2.5 py-1 rounded-lg border text-xs font-semibold ${
+                  isTeamSuggestion
+                    ? "bg-slate-800/40 border-slate-700/30 text-slate-300"
+                    : "bg-slate-50 border-slate-100 text-slate-600"
+                }`}>
                   {s}
                 </span>
               ))}
               {skills.length > 5 && (
-                <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-semibold">
+                <span className={`px-2 py-1 rounded-lg text-[10px] font-semibold ${
+                  isTeamSuggestion ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"
+                }`}>
                   +{skills.length - 5} more
                 </span>
               )}
@@ -172,7 +199,11 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Project Focus</p>
               <div className="flex flex-wrap gap-1">
                 {interests.map(i => (
-                  <span key={i} className="px-2.5 py-1 bg-purple-50 text-purple-600 rounded-lg border border-purple-100/70 text-xs font-semibold">
+                  <span key={i} className={`px-2.5 py-1 rounded-lg border text-xs font-semibold ${
+                    isTeamSuggestion
+                      ? "bg-purple-950/30 border-purple-855/30 text-purple-300"
+                      : "bg-purple-50 border-purple-100/70 text-purple-600"
+                  }`}>
                     {i}
                   </span>
                 ))}
@@ -183,22 +214,28 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* Past Project Experience Details */}
         {teammate.past_hackathon && (
-          <div className="border-t border-slate-50 pt-4 mb-6 text-xs text-slate-500 space-y-1 bg-slate-50/30 p-3 rounded-xl">
-            <p className="font-bold text-slate-700 flex items-center gap-1">
+          <div className={`border-t pt-4 mb-6 text-xs space-y-1 p-3 rounded-xl ${
+            isTeamSuggestion
+              ? "border-slate-800/40 bg-slate-900/30 text-slate-400"
+              : "border-slate-50 bg-slate-50/30 text-slate-500"
+          }`}>
+            <p className={`font-bold flex items-center gap-1 ${isTeamSuggestion ? "text-slate-300" : "text-slate-700"}`}>
               <Star size={12} className="text-amber-500 fill-amber-500" /> {teammate.past_hackathon}
             </p>
             {teammate.past_project_name && (
-              <p className="text-slate-600 font-semibold">Project: {teammate.past_project_name}</p>
+              <p className={isTeamSuggestion ? "text-slate-400" : "text-slate-600"}>Project: {teammate.past_project_name}</p>
             )}
           </div>
         )}
 
         {/* Interactive Breakdown */}
         {teammate.breakdown && (
-          <div className="border-t border-slate-50 pt-4 mb-4">
+          <div className={`border-t pt-4 mb-4 ${isTeamSuggestion ? "border-slate-850" : "border-slate-55"}`}>
             <button
               onClick={() => setShowBreakdown(!showBreakdown)}
-              className="w-full flex items-center justify-between text-xs text-slate-500 font-semibold hover:text-slate-700"
+              className={`w-full flex items-center justify-between text-xs font-semibold ${
+                isTeamSuggestion ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-750"
+              }`}
             >
               <span>Match Diagnostics</span>
               {showBreakdown ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -229,7 +266,9 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
               className={`col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 border ${
                 isSelected
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-sm"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-sm"
+                  : isTeamSuggestion
+                    ? "bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border-indigo-500/30 shadow-sm"
+                    : "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-sm"
               }`}
             >
               {isSelected ? "✓ Selected (Click to remove)" : "+ Add to Team"}
@@ -239,12 +278,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
           {teammate.contact_email ? (
             <a
               href={`mailto:${teammate.contact_email}?subject=TeamMatch%20AI%20-%20Let's%20Form%20a%20Hackathon%20Team!`}
-              className="py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5"
+              className={`py-2 px-3 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
+                isTeamSuggestion
+                  ? "bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border-indigo-500/20"
+                  : "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-100"
+              }`}
             >
               <Mail size={13} /> Email
             </a>
           ) : (
-            <button disabled className="py-2 px-3 bg-slate-50 text-slate-300 border border-slate-100 rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5">
+            <button disabled className={`py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
+              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
+            }`}>
               <Mail size={13} /> Email
             </button>
           )}
@@ -254,12 +299,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
               href={teammate.linkedin_link}
               target="_blank"
               rel="noopener noreferrer"
-              className="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-100 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5"
+              className={`py-2 px-3 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
+                isTeamSuggestion
+                  ? "bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border-blue-500/20"
+                  : "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-100"
+              }`}
             >
               <Linkedin size={13} /> LinkedIn
             </a>
           ) : (
-            <button disabled className="py-2 px-3 bg-slate-50 text-slate-300 border border-slate-100 rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5">
+            <button disabled className={`py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
+              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
+            }`}>
               <Linkedin size={13} /> LinkedIn
             </button>
           )}
@@ -267,12 +318,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
           {teammate.phone ? (
             <a
               href={`tel:${teammate.phone.replace(/\s+/g, "")}`}
-              className="col-span-2 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5"
+              className={`col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
+                isTeamSuggestion
+                  ? "bg-slate-800 hover:bg-slate-750 text-slate-200"
+                  : "bg-slate-900 hover:bg-slate-800 text-white"
+              }`}
             >
               <Phone size={13} /> Call / SMS ({teammate.phone})
             </a>
           ) : (
-            <button disabled className="col-span-2 py-2 px-3 bg-slate-50 text-slate-300 border border-slate-100 rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5">
+            <button disabled className={`col-span-2 py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
+              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
+            }`}>
               <Phone size={13} /> Call / SMS (Not Provided)
             </button>
           )}
@@ -298,6 +355,10 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
   const [showTeam, setShowTeam] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [tempTeamName, setTempTeamName] = useState("");
+  const [modalType, setModalType] = useState("auto"); // "auto" or "custom"
+  const [saveStatus, setSaveStatus] = useState(null); // { type: 'success' | 'error', message: '...' }
 
   const handleToggleSelect = useCallback((member) => {
     setSelectedMembers(prev => {
@@ -369,85 +430,92 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
     finally { setTeamLoading(false); }
   };
 
-  const handleSaveTeam = async () => {
-    const teamName = prompt("Enter a name for your new team:");
-    if (!teamName || !teamName.trim()) return;
-
-    try {
-      const avgHealth = teamSuggestion.length > 0
-        ? teamSuggestion.reduce((acc, curr) => acc + (curr.matchPercentage || 0), 0) / teamSuggestion.length
-        : 80;
-
-      const memberIds = [parseInt(userId), ...teamSuggestion.map(t => t.user_id)];
-
-      const res = await fetch(`${API_BASE}/api/teams`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          team_name: teamName.trim(),
-          description: `AI Auto-built team for user #${userId}`,
-          health_score: parseFloat(avgHealth.toFixed(1)),
-          members: memberIds
-        })
-      });
-
-      if (res.ok) {
-        alert(`Team "${teamName.trim()}" successfully saved to your dashboard!`);
-      } else {
-        const err = await res.json();
-        alert(`Failed to save team: ${err.detail || "Server error"}`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Error contacting the server.");
-    }
+  const handleSaveTeam = () => {
+    setModalType("auto");
+    setSaveStatus(null);
+    setTempTeamName("");
+    setShowSaveModal(true);
   };
 
-  const handleSaveCustomTeam = async () => {
-    const teamName = prompt("Enter a name for your custom team:");
-    if (!teamName || !teamName.trim()) return;
+  const handleSaveCustomTeam = () => {
+    setModalType("custom");
+    setSaveStatus(null);
+    setTempTeamName("");
+    setShowSaveModal(true);
+  };
+
+  const executeSaveTeam = async () => {
+    if (!tempTeamName.trim()) return;
 
     try {
-      const memberIds = [parseInt(userId), ...selectedMembers.map(m => m.user_id)];
+      let res;
+      if (modalType === "auto") {
+        const avgHealth = teamSuggestion.length > 0
+          ? teamSuggestion.reduce((acc, curr) => acc + (curr.matchPercentage || 0), 0) / teamSuggestion.length
+          : 80;
 
-      const resHealth = await fetch(`${API_BASE}/api/team-health`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ members: memberIds })
-      });
-      const healthData = await resHealth.json();
-      const finalHealth = healthData?.health?.health_score || 75;
+        const memberIds = [parseInt(userId), ...teamSuggestion.map(t => t.user_id)];
 
-      const res = await fetch(`${API_BASE}/api/teams`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          team_name: teamName.trim(),
-          description: `Custom team built with: ${selectedMembers.map(m => m.preferred_role).join(", ")}`,
-          health_score: parseFloat(finalHealth),
-          members: memberIds
-        })
-      });
+        res = await fetch(`${API_BASE}/api/teams`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            team_name: tempTeamName.trim(),
+            description: `AI Auto-built team for user #${userId}`,
+            health_score: parseFloat(avgHealth.toFixed(1)),
+            members: memberIds
+          })
+        });
+      } else {
+        const memberIds = [parseInt(userId), ...selectedMembers.map(m => m.user_id)];
+
+        const resHealth = await fetch(`${API_BASE}/api/team-health`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ members: memberIds })
+        });
+        const healthData = await resHealth.json();
+        const finalHealth = healthData?.health?.health_score || 75;
+
+        res = await fetch(`${API_BASE}/api/teams`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            team_name: tempTeamName.trim(),
+            description: `Custom team built with: ${selectedMembers.map(m => m.preferred_role).join(", ")}`,
+            health_score: parseFloat(finalHealth),
+            members: memberIds
+          })
+        });
+      }
 
       if (res.ok) {
-        alert(`Custom Team "${teamName.trim()}" saved successfully!`);
-        setSelectedMembers([]);
+        setSaveStatus({
+          type: "success",
+          message: `Team "${tempTeamName.trim()}" successfully saved to your dashboard!`
+        });
       } else {
         const err = await res.json();
-        alert(`Failed to save custom team: ${err.detail || "Server error"}`);
+        setSaveStatus({
+          type: "error",
+          message: `Failed to save team: ${err.detail || "Server error"}`
+        });
       }
     } catch (e) {
       console.error(e);
-      alert("Error contacting the server.");
+      setSaveStatus({
+        type: "error",
+        message: "Error connecting to the database server."
+      });
     }
   };
 
@@ -505,30 +573,30 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
       <AnimatePresence>
         {showTeam && (
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-            className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-6 shadow-sm">
+            className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-2 rounded-xl text-white">
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2.5 rounded-xl text-white">
                   <Users size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900">AI Team Builder</h3>
-                  <p className="text-xs text-slate-500">Complementary teammates selected to balance your skills</p>
+                  <h3 className="font-bold text-slate-100">AI Team Builder</h3>
+                  <p className="text-xs text-slate-400">Complementary teammates selected to balance your skills</p>
                 </div>
               </div>
               <div className="flex gap-2 items-center">
                 {teamSuggestion.length > 0 && !teamLoading && (
                   <button
                     onClick={handleSaveTeam}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white rounded-xl font-bold text-xs shadow-md shadow-purple-500/10 transition-all"
                   >
                     <CheckCircle2 size={13} /> Save Team
                   </button>
                 )}
-                <button onClick={fetchTeamBuilder} className="p-2 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 transition-colors">
+                <button onClick={fetchTeamBuilder} className="p-2 bg-slate-800 border border-slate-700 hover:bg-slate-750 text-slate-400 hover:text-white rounded-xl transition-colors">
                   <RefreshCw size={15} className={teamLoading ? "animate-spin" : ""} />
                 </button>
-                <button onClick={() => setShowTeam(false)} className="p-2 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 transition-colors">
+                <button onClick={() => setShowTeam(false)} className="p-2 bg-slate-800 border border-slate-700 hover:bg-slate-750 text-slate-400 hover:text-white rounded-xl transition-colors">
                   <X size={15} />
                 </button>
               </div>
@@ -769,6 +837,92 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
           )}
         </>
       )}
+
+      {/* ─── Save Team Modal ─────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showSaveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { if (!saveStatus) setShowSaveModal(false); }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-100 shadow-2xl relative z-10 space-y-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Save Team Roster</h3>
+                  <p className="text-xs text-slate-500">Form your hackathon squad</p>
+                </div>
+              </div>
+
+              {saveStatus ? (
+                <div className="space-y-4 py-4 text-center">
+                  <div className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center ${
+                    saveStatus.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                  }`}>
+                    {saveStatus.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">{saveStatus.message}</p>
+                  <button
+                    onClick={() => {
+                      setShowSaveModal(false);
+                      setSaveStatus(null);
+                      setTempTeamName("");
+                      if (modalType === 'custom') setSelectedMembers([]);
+                    }}
+                    className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Team Name</label>
+                    <input
+                      type="text"
+                      value={tempTeamName}
+                      onChange={e => setTempTeamName(e.target.value)}
+                      placeholder="e.g. Code Crusaders, Alpha Pack"
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      onClick={() => setShowSaveModal(false)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={executeSaveTeam}
+                      disabled={!tempTeamName.trim()}
+                      className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
+                    >
+                      Confirm Save
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
