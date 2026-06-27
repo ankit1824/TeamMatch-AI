@@ -31,16 +31,16 @@ const Footer = ({ setActiveTab }) => {
           <div>
             <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Connect</h4>
             <div className="flex space-x-4">
-              <a href="https://github.com/Shatakshi0216" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
+              <a href="https://github.com/ankit1824" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
                 <Github size={20} />
               </a>
-              <a href="https://x.com/Shatakshi021" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
+              <a href="https://x.com/ankitp_1824" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
                 <Twitter size={20} />
               </a>
-              <a href="https://www.linkedin.com/in/shatakshitiwari017/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
+              <a href="https://www.linkedin.com/in/ankit-prajapat/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
                 <Linkedin size={20} />
               </a>
-              <a href="mailto:shatakshitiwari021@gmail.com" className="text-gray-400 hover:text-indigo-600 transition-colors">
+              <a href="mailto:akprajapat1824@gmail.com" className="text-gray-400 hover:text-indigo-600 transition-colors">
                 <Mail size={20} />
               </a>
             </div>

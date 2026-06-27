@@ -38,10 +38,10 @@ const HelpCenter = () => {
           <h3 className="font-bold text-gray-900 mb-2">Email Support</h3>
           <p className="text-sm text-gray-500 mb-4">Get help via email for more complex issues.</p>
           <a 
-            href="mailto:shatakshitiwari021@gmail.com" 
+            href="mailto:akprajapat1824@gmail.com" 
             className="text-indigo-600 font-bold text-sm flex items-center hover:underline"
           >
-            shatakshitiwari021@gmail.com
+            akprajapat1824@gmail.com
             <ExternalLink size={14} className="ml-1" />
           </a>
         </div>
