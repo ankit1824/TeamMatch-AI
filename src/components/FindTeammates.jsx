@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   User, School, Code, Briefcase, Star, Filter, X,
   Search, Github, Linkedin, Mail, Zap,
-  ChevronDown, ChevronUp, Users, RefreshCw, Phone
+  ChevronDown, ChevronUp, Users, RefreshCw, Phone, CheckCircle2
 } from "lucide-react";
 
 // ─── Typedefs ────────────────────────────────────────────────────────────────
@@ -342,6 +342,43 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
     finally { setTeamLoading(false); }
   };
 
+  const handleSaveTeam = async () => {
+    const teamName = prompt("Enter a name for your new team:");
+    if (!teamName || !teamName.trim()) return;
+
+    try {
+      const avgHealth = teamSuggestion.length > 0
+        ? teamSuggestion.reduce((acc, curr) => acc + (curr.matchPercentage || 0), 0) / teamSuggestion.length
+        : 80;
+
+      const memberIds = [parseInt(userId), ...teamSuggestion.map(t => t.user_id)];
+
+      const res = await fetch(`${API_BASE}/api/teams`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          team_name: teamName.trim(),
+          description: `AI Auto-built team for user #${userId}`,
+          health_score: parseFloat(avgHealth.toFixed(1)),
+          members: memberIds
+        })
+      });
+
+      if (res.ok) {
+        alert(`Team "${teamName.trim()}" successfully saved to your dashboard!`);
+      } else {
+        const err = await res.json();
+        alert(`Failed to save team: ${err.detail || "Server error"}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error contacting the server.");
+    }
+  };
+
   useEffect(() => {
     if (suggestedOnly && userId) fetchMatches();
   }, [suggestedOnly, userId]);
@@ -407,7 +444,15 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
                   <p className="text-xs text-slate-500">Complementary teammates selected to balance your skills</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                {teamSuggestion.length > 0 && !teamLoading && (
+                  <button
+                    onClick={handleSaveTeam}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all"
+                  >
+                    <CheckCircle2 size={13} /> Save Team
+                  </button>
+                )}
                 <button onClick={fetchTeamBuilder} className="p-2 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 transition-colors">
                   <RefreshCw size={15} className={teamLoading ? "animate-spin" : ""} />
                 </button>
