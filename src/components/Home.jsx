@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
 import {
   User, Search, Zap, CheckCircle2, ArrowRight, Star, Sparkles,
-  AlertCircle, Github, Linkedin, Code, Heart, Briefcase, Trophy
+  AlertCircle, Github, Linkedin, Code, Heart, Briefcase, Trophy, Users
 } from "lucide-react";
 
 // ─── Weighted Profile Strength ────────────────────────────────────────────────
@@ -60,23 +60,58 @@ const Home = ({ setActiveTab }) => {
   const { token } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setProfile(data);
+    } catch (err) {
+      console.error("Failed to fetch profile", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/teams`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setTeams(data);
+    } catch (e) {
+      console.error("Failed to fetch teams", e);
+    } finally {
+      setTeamsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setProfile(data);
-      } catch (err) {
-        console.error("Failed to fetch profile", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
+    fetchTeams();
   }, [token]);
+
+  const handleDeleteTeam = async (teamId) => {
+    if (!confirm("Are you sure you want to delete this team?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/teams/${teamId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setTeams(prev => prev.filter(t => t.id !== teamId));
+      } else {
+        alert("Failed to delete team.");
+      }
+    } catch (e) {
+      console.error("Error deleting team", e);
+    }
+  };
 
   const strength = useMemo(() => calculateProfileStrength(profile), [profile]);
   const missingFields = useMemo(() => getMissingFields(profile), [profile]);
@@ -207,6 +242,55 @@ const Home = ({ setActiveTab }) => {
 
         {/* Right Column */}
         <div className="lg:col-span-2 space-y-6">
+
+          {/* My Formed Teams Section */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users size={20} />
+              </div>
+              <h3 className="font-bold text-slate-900 text-lg">My Formed Teams</h3>
+            </div>
+            
+            {teamsLoading ? (
+              <p className="text-slate-400 text-sm">Loading teams...</p>
+            ) : teams.length === 0 ? (
+              <div className="text-center py-6 border border-dashed border-gray-200 rounded-2xl bg-slate-50/50">
+                <p className="text-slate-400 text-sm">No saved teams yet.</p>
+                <button
+                  onClick={goToFindTeammates}
+                  className="text-xs text-indigo-600 font-bold hover:underline mt-1"
+                >
+                  Assemble your first team &rarr;
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {teams.map(t => (
+                  <div key={t.id} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-between hover:shadow-md transition-shadow relative">
+                    <button
+                      onClick={() => handleDeleteTeam(t.id)}
+                      className="absolute top-4 right-4 text-xs font-semibold text-red-500 hover:text-red-700 hover:underline transition-colors"
+                    >
+                      Delete
+                    </button>
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-slate-900 pr-12 truncate text-sm">{t.team_name}</h4>
+                      <p className="text-[11px] text-slate-500 italic leading-relaxed pr-12 line-clamp-2">{t.description}</p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        {t.members.length} Members
+                      </span>
+                      <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-lg">
+                        {t.health_score}% Health
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Profile Strength < 70% → Reminder Banner */}
           {!loading && strength < 70 && (
