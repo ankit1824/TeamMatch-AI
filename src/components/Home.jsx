@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { API_BASE } from "../config";
 import { useAuth } from "../context/AuthContext";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   User, Search, Zap, CheckCircle2, ArrowRight, Star, Sparkles,
-  AlertCircle, Github, Linkedin, Code, Heart, Briefcase, Trophy, Users
+  AlertCircle, Github, Linkedin, Code, Heart, Briefcase, Trophy, Users, Trash2
 } from "lucide-react";
 
 // ─── Weighted Profile Strength ────────────────────────────────────────────────
@@ -63,6 +63,11 @@ const Home = ({ setActiveTab }) => {
   const [teams, setTeams] = useState([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
 
+  // Custom Delete Modal States
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
+  const [deleteStatus, setDeleteStatus] = useState(null); // { type: 'success' | 'error', message: '...' }
+
   const fetchProfile = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/profile`, {
@@ -83,9 +88,14 @@ const Home = ({ setActiveTab }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      setTeams(data);
+      if (Array.isArray(data)) {
+        setTeams(data);
+      } else {
+        setTeams([]);
+      }
     } catch (e) {
       console.error("Failed to fetch teams", e);
+      setTeams([]);
     } finally {
       setTeamsLoading(false);
     }
@@ -96,20 +106,29 @@ const Home = ({ setActiveTab }) => {
     fetchTeams();
   }, [token]);
 
-  const handleDeleteTeam = async (teamId) => {
-    if (!confirm("Are you sure you want to delete this team?")) return;
+  const triggerDeleteTeam = (teamId) => {
+    setTeamToDelete(teamId);
+    setDeleteStatus(null);
+    setShowDeleteModal(true);
+  };
+
+  const executeDeleteTeam = async () => {
+    if (!teamToDelete) return;
     try {
-      const res = await fetch(`${API_BASE}/api/teams/${teamId}`, {
+      const res = await fetch(`${API_BASE}/api/teams/${teamToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        setTeams(prev => prev.filter(t => t.id !== teamId));
+        setTeams(prev => prev.filter(t => t.id !== teamToDelete));
+        setShowDeleteModal(false);
+        setTeamToDelete(null);
       } else {
-        alert("Failed to delete team.");
+        setDeleteStatus({ type: 'error', message: "Failed to delete team." });
       }
     } catch (e) {
       console.error("Error deleting team", e);
+      setDeleteStatus({ type: 'error', message: "Error contacting the server." });
     }
   };
 
@@ -244,50 +263,79 @@ const Home = ({ setActiveTab }) => {
         <div className="lg:col-span-2 space-y-6">
 
           {/* My Formed Teams Section */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Users size={20} />
+          <div className="bg-white rounded-3xl p-6 shadow-[0_4px_30px_rgb(0,0,0,0.02)] border border-slate-100 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 rounded-2xl border border-indigo-100/30">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">My Formed Teams</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Active squads in database</p>
+                </div>
               </div>
-              <h3 className="font-bold text-slate-900 text-lg">My Formed Teams</h3>
+              <span className="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-full border border-indigo-100/30">
+                {(teams || []).length} Roster{(teams || []).length !== 1 ? 's' : ''}
+              </span>
             </div>
             
             {teamsLoading ? (
-              <p className="text-slate-400 text-sm">Loading teams...</p>
-            ) : teams.length === 0 ? (
-              <div className="text-center py-6 border border-dashed border-gray-200 rounded-2xl bg-slate-50/50">
+              <div className="py-8 text-center text-slate-400 text-sm">Loading team rosters...</div>
+            ) : !Array.isArray(teams) || teams.length === 0 ? (
+              <div className="text-center py-10 border-2 border-dashed border-slate-150 rounded-2xl bg-slate-50/30">
                 <p className="text-slate-400 text-sm">No saved teams yet.</p>
                 <button
                   onClick={goToFindTeammates}
-                  className="text-xs text-indigo-600 font-bold hover:underline mt-1"
+                  className="text-xs text-indigo-600 font-bold hover:underline mt-2 flex items-center gap-1 mx-auto"
                 >
-                  Assemble your first team &rarr;
+                  Assemble your first team <ArrowRight size={12} />
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {teams.map(t => (
-                  <div key={t.id} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col justify-between hover:shadow-md transition-shadow relative">
-                    <button
-                      onClick={() => handleDeleteTeam(t.id)}
-                      className="absolute top-4 right-4 text-xs font-semibold text-red-500 hover:text-red-700 hover:underline transition-colors"
-                    >
-                      Delete
-                    </button>
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-slate-900 pr-12 truncate text-sm">{t.team_name}</h4>
-                      <p className="text-[11px] text-slate-500 italic leading-relaxed pr-12 line-clamp-2">{t.description}</p>
+                {teams.map(t => {
+                  const mList = t.members || [];
+                  return (
+                    <div key={t.id} className="p-5 bg-gradient-to-br from-slate-50/70 to-white border border-slate-100 rounded-2xl flex flex-col justify-between hover:shadow-lg hover:border-indigo-100 transition-all relative group">
+                      <button
+                        onClick={() => triggerDeleteTeam(t.id)}
+                        className="absolute top-4 right-4 p-1.5 bg-white border border-slate-105 text-slate-400 hover:text-red-500 hover:border-red-100 rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                        title="Delete Team"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                      <div className="space-y-1.5">
+                        <h4 className="font-extrabold text-slate-800 pr-8 truncate text-sm tracking-tight">{t.team_name}</h4>
+                        <p className="text-[11px] text-slate-400 italic leading-relaxed pr-8 line-clamp-2">{t.description}</p>
+                      </div>
+                      
+                      <div className="mt-5 flex items-center justify-between border-t border-slate-100/70 pt-3.5">
+                        <div className="flex items-center gap-2">
+                          {/* Overlapping Avatars */}
+                          <div className="flex -space-x-1.5 overflow-hidden">
+                            {mList.slice(0, 4).map((m, idx) => (
+                              <div key={idx} className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-gradient-to-br from-indigo-500 to-purple-650 text-white font-bold text-[8px] flex items-center justify-center shadow-sm">
+                                {idx === 0 ? "You" : `M${idx}`}
+                              </div>
+                            ))}
+                            {mList.length > 4 && (
+                              <div className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-slate-200 text-slate-600 font-bold text-[8px] flex items-center justify-center shadow-sm">
+                                +{mList.length - 4}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            {mList.length} member{mList.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        
+                        <span className="text-[10px] font-black text-white bg-gradient-to-r from-indigo-600 to-purple-600 px-2.5 py-1 rounded-xl shadow-sm shadow-indigo-500/10 tracking-tight">
+                          {t.health_score}% Health
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {t.members.length} Members
-                      </span>
-                      <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2 py-0.5 rounded-lg">
-                        {t.health_score}% Health
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -373,6 +421,75 @@ const Home = ({ setActiveTab }) => {
           </div>
         </div>
       </div>
+      {/* ─── Delete Confirmation Modal ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { if (!deleteStatus) setShowDeleteModal(false); }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full border border-slate-100 shadow-2xl relative z-10 space-y-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Delete Team</h3>
+                  <p className="text-xs text-slate-500">This action cannot be undone</p>
+                </div>
+              </div>
+
+              {deleteStatus ? (
+                <div className="space-y-4 py-2 text-center">
+                  <div className="w-12 h-12 rounded-full mx-auto flex items-center justify-center bg-red-50 text-red-600">
+                    <AlertCircle size={24} />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">{deleteStatus.message}</p>
+                  <button
+                    onClick={() => { setShowDeleteModal(false); setDeleteStatus(null); }}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Are you sure you want to permanently delete this team roster from your dashboard?
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={executeDeleteTeam}
+                      className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
