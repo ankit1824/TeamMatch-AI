@@ -326,6 +326,27 @@ async def api_add_team(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/team-health")
+async def api_team_health(request: Request):
+    """Calculates ML team health metrics for a given list of student IDs."""
+    try:
+        data = await request.json()
+        member_ids = data.get("members", [])
+        if not member_ids:
+            return {"health": {"health_score": 0.0}, "gaps": []}
+            
+        team_members = []
+        for mid in member_ids:
+            student = get_student_by_id(int(mid))
+            if student:
+                team_members.append(student)
+                
+        from engine.ml_pipeline import calculate_ml_team_health
+        health_data = calculate_ml_team_health(team_members)
+        return health_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/api/teams/{team_id}")
 async def api_delete_team(team_id: int):
     """Deletes a saved team roster by ID."""
