@@ -54,7 +54,7 @@ const BreakdownBar = ({ label, value, max, color }) => (
 
 // ─── Teammate Card ───────────────────────────────────────────────────────────
 
-const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion }) => {
+const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, isSelected, onToggleSelect }) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const skills = getSkillsArr(teammate.skills);
   const interests = getSkillsArr(teammate.interests);
@@ -107,11 +107,25 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion }) 
               </div>
             </div>
           </div>
-          {matchPct > 0 && (
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${matchColor}`}>
-              {matchPct}% match
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            {matchPct > 0 && (
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${matchColor}`}>
+                {matchPct}% match
+              </span>
+            )}
+            {teammate.user_id !== parseInt(currentUserId) && onToggleSelect && (
+              <button
+                onClick={() => onToggleSelect(teammate)}
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all ${
+                  isSelected
+                    ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+                    : "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100"
+                }`}
+              >
+                {isSelected ? "✓ Selected" : "+ Add to Team"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Meta */}
@@ -282,6 +296,18 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
   const [teamSuggestion, setTeamSuggestion] = useState([]);
   const [showTeam, setShowTeam] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+
+  const handleToggleSelect = useCallback((member) => {
+    setSelectedMembers(prev => {
+      const exists = prev.some(m => m.user_id === member.user_id);
+      if (exists) {
+        return prev.filter(m => m.user_id !== member.user_id);
+      } else {
+        return [...prev, member];
+      }
+    });
+  }, []);
 
   // Search filter options
   const [searchSkills, setSearchSkills] = useState("");
@@ -379,6 +405,51 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
     }
   };
 
+  const handleSaveCustomTeam = async () => {
+    const teamName = prompt("Enter a name for your custom team:");
+    if (!teamName || !teamName.trim()) return;
+
+    try {
+      const memberIds = [parseInt(userId), ...selectedMembers.map(m => m.user_id)];
+
+      const resHealth = await fetch(`${API_BASE}/api/team-health`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ members: memberIds })
+      });
+      const healthData = await resHealth.json();
+      const finalHealth = healthData?.health?.health_score || 75;
+
+      const res = await fetch(`${API_BASE}/api/teams`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          team_name: teamName.trim(),
+          description: `Custom team built with: ${selectedMembers.map(m => m.preferred_role).join(", ")}`,
+          health_score: parseFloat(finalHealth),
+          members: memberIds
+        })
+      });
+
+      if (res.ok) {
+        alert(`Custom Team "${teamName.trim()}" saved successfully!`);
+        setSelectedMembers([]);
+      } else {
+        const err = await res.json();
+        alert(`Failed to save custom team: ${err.detail || "Server error"}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error contacting the server.");
+    }
+  };
+
   useEffect(() => {
     if (suggestedOnly && userId) fetchMatches();
   }, [suggestedOnly, userId]);
@@ -466,7 +537,15 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {teamSuggestion.map(t => (
-                  <TeammateCard key={t.user_id} teammate={t} currentUserId={userId?.toString() || null} onMessage={onMessage} isTeamSuggestion />
+                  <TeammateCard
+                    key={t.user_id}
+                    teammate={t}
+                    currentUserId={userId?.toString() || null}
+                    onMessage={onMessage}
+                    isTeamSuggestion
+                    isSelected={selectedMembers.some(m => m.user_id === t.user_id)}
+                    onToggleSelect={handleToggleSelect}
+                  />
                 ))}
                 {teamSuggestion.length === 0 && <p className="col-span-4 text-center text-slate-400 text-sm py-4">Not enough diverse profiles yet. Search to find more!</p>}
               </div>
@@ -568,6 +647,44 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
         </div>
       )}
 
+      {/* ─── Custom Team Builder Floating Bar ───────────────────────────────── */}
+      <AnimatePresence>
+        {selectedMembers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+            className="bg-slate-900 text-white rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg border border-slate-800"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-600 p-2.5 rounded-xl">
+                <Users size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-slate-100">Custom Team Builder</h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Selected: <span className="text-indigo-400 font-semibold">{selectedMembers.map(m => m.full_name).join(", ")}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSaveCustomTeam}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
+              >
+                Save Team
+              </button>
+              <button
+                onClick={() => setSelectedMembers([])}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl font-bold text-xs transition-colors"
+              >
+                Clear Selection
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ─── Results Header & Filters ─────────────────────────────────────────── */}
       {(hasSearched || suggestedOnly) && (
         <div className="flex flex-wrap items-center gap-3">
@@ -636,7 +753,14 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <AnimatePresence mode="popLayout">
                   {filteredTeammates.map(t => (
-                    <TeammateCard key={t.user_id} teammate={t} currentUserId={userId?.toString() || null} onMessage={onMessage} />
+                    <TeammateCard
+                      key={t.user_id}
+                      teammate={t}
+                      currentUserId={userId?.toString() || null}
+                      onMessage={onMessage}
+                      isSelected={selectedMembers.some(m => m.user_id === t.user_id)}
+                      onToggleSelect={handleToggleSelect}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
