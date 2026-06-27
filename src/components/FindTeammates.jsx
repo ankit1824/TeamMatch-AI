@@ -113,18 +113,6 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
                 {matchPct}% match
               </span>
             )}
-            {teammate.user_id !== parseInt(currentUserId) && onToggleSelect && (
-              <button
-                onClick={() => onToggleSelect(teammate)}
-                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all ${
-                  isSelected
-                    ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
-                    : "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100"
-                }`}
-              >
-                {isSelected ? "✓ Selected" : "+ Add to Team"}
-              </button>
-            )}
           </div>
         </div>
 
@@ -235,6 +223,19 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* Contact Links Grid (Replaces Legacy Chat Message Button) */}
         <div className="grid grid-cols-2 gap-2 mt-auto">
+          {teammate.user_id !== parseInt(currentUserId) && onToggleSelect && (
+            <button
+              onClick={() => onToggleSelect(teammate)}
+              className={`col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 border ${
+                isSelected
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-sm"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-sm"
+              }`}
+            >
+              {isSelected ? "✓ Selected (Click to remove)" : "+ Add to Team"}
+            </button>
+          )}
+
           {teammate.contact_email ? (
             <a
               href={`mailto:${teammate.contact_email}?subject=TeamMatch%20AI%20-%20Let's%20Form%20a%20Hackathon%20Team!`}
