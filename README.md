@@ -196,9 +196,9 @@ http://localhost:5173
 
 ![Recommendations](images/recommendations.png)
 
-### Team Analysis
+### Upcomming Hackathons
 
-![Team Analysis](images/team-analysis.png)
+![Team Analysis](images/upcomming-hackathons.png)
 
 ---
 
