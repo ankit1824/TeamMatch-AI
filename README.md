@@ -69,7 +69,7 @@ This helps evaluate whether a team has a balanced distribution of skills.
 
 ### Database
 
-- SQLite
+- PostgreSQL
 
 ### Authentication
 
@@ -84,7 +84,7 @@ TeamMatch-AI/
 │
 ├── src/                  # React Frontend
 ├── engine/               # Machine Learning Pipeline
-├── data/                 # Dataset & SQLite Database
+├── data/                 # Dataset & PostgreSQL Database
 ├── app.py                # FastAPI Server
 ├── database.py           # Database Operations
 ├── generate_dataset.py   # Dataset Generation
