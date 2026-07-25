@@ -20,14 +20,14 @@ const getSkillsArr = (skills) => {
 
 const AvailBadge = ({ status }) => {
   const map = {
-    Available: { dot: "bg-emerald-400", text: "text-emerald-600" },
-    Busy: { dot: "bg-red-400", text: "text-red-500" },
-    "Looking for team": { dot: "bg-amber-400", text: "text-amber-600" },
+    Available: { dot: "bg-emerald-400", text: "text-emerald-450 bg-emerald-500/10 border border-emerald-500/20" },
+    Busy: { dot: "bg-rose-400", text: "text-rose-450 bg-rose-500/10 border border-rose-500/20" },
+    "Looking for team": { dot: "bg-amber-400", text: "text-amber-450 bg-amber-500/10 border border-amber-500/20" },
   };
-  const s = map[status || ""] || { dot: "bg-slate-300", text: "text-slate-400" };
+  const s = map[status || ""] || { dot: "bg-slate-500", text: "text-slate-400 bg-slate-500/10 border border-slate-550/20" };
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} ${status === "Available" ? "animate-pulse" : ""}`} />
+    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-lg ${s.text}`}>
+      <span className={`w-1 h-1 rounded-full ${s.dot} ${status === "Available" ? "animate-pulse" : ""}`} />
       {status || "Unknown"}
     </span>
   );
@@ -37,11 +37,11 @@ const AvailBadge = ({ status }) => {
 
 const BreakdownBar = ({ label, value, max, color }) => (
   <div className="space-y-1">
-    <div className="flex justify-between text-xs text-slate-500">
+    <div className="flex justify-between text-[11px] text-slate-400">
       <span>{label}</span>
-      <span className="font-semibold text-slate-700">{value}/{max}</span>
+      <span className="font-semibold text-slate-200">{value}/{max}</span>
     </div>
-    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+    <div className="h-1.5 bg-slate-900/80 rounded-full overflow-hidden border border-white/5 p-[1px]">
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${Math.min(100, (value / max) * 100)}%` }}
@@ -67,15 +67,13 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
   };
 
   const matchPct = teammate.matchPercentage || 0;
-  const matchColor = isTeamSuggestion
-    ? "text-purple-300 bg-purple-950/40 border-purple-800/40"
-    : matchPct >= 80
-      ? "text-emerald-600 bg-emerald-50 border-emerald-200"
-      : matchPct >= 60
-        ? "text-blue-600 bg-blue-50 border-blue-200"
-        : "text-amber-600 bg-amber-50 border-amber-200";
+  const matchColor = matchPct >= 80
+    ? "text-emerald-450 bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.1)]"
+    : matchPct >= 60
+      ? "text-cyan-450 bg-cyan-500/10 border-cyan-500/20 shadow-[0_0_8px_rgba(6,182,212,0.1)]"
+      : "text-amber-455 bg-amber-500/10 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.1)]";
 
-  const ringColor = matchPct >= 80 ? "#10b981" : matchPct >= 60 ? "#2563eb" : "#f59e0b";
+  const ringColor = matchPct >= 80 ? "#10b981" : matchPct >= 60 ? "#06b6d4" : "#f59e0b";
 
   return (
     <motion.div
@@ -86,12 +84,12 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
       whileHover={{ y: -3 }}
       className={`rounded-2xl border transition-all flex flex-col overflow-hidden ${
         isTeamSuggestion
-          ? "bg-slate-950/60 border-slate-850/80 shadow-[0_8px_30px_rgb(0,0,0,0.3)] text-white hover:shadow-[0_8px_30px_rgb(99,102,241,0.15)] hover:border-indigo-500/30"
-          : "bg-white border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.1)] hover:border-blue-100"
+          ? "bg-slate-950/60 border-slate-850/80 shadow-[0_8px_30px_rgb(0,0,0,0.3)] text-white hover:shadow-[0_8px_30px_rgb(139,92,246,0.15)] hover:border-purple-500/40"
+          : "bg-slate-900/60 border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.2)] text-white hover:shadow-[0_8px_30px_rgb(99,102,241,0.15)] hover:border-indigo-500/40"
       }`}
     >
       {isTeamSuggestion && teammate.suggestedFor && (
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 text-xs font-bold text-white flex items-center gap-1.5">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 text-[10px] font-bold text-white flex items-center gap-1.5 uppercase tracking-wide">
           <Users size={12} /> Suggested as {teammate.suggestedFor}
         </div>
       )}
@@ -101,18 +99,18 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-650 flex items-center justify-center text-white font-bold text-lg shadow-md border border-white/5">
                 {(teammate.full_name || "?")[0].toUpperCase()}
               </div>
               {matchPct > 0 && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center shadow-sm">
                   <span style={{ color: ringColor }} className="text-[9px] font-black">{matchPct}%</span>
                 </div>
               )}
             </div>
             <div>
-              <h3 className={`font-bold text-base leading-tight ${isTeamSuggestion ? "text-slate-100" : "text-slate-900"}`}>{teammate.full_name || "Anonymous"}</h3>
-              <div className={`flex items-center gap-1 text-xs mt-0.5 ${isTeamSuggestion ? "text-slate-400" : "text-slate-500"}`}>
+              <h3 className="font-bold text-base leading-tight text-white">{teammate.full_name || "Anonymous"}</h3>
+              <div className="flex items-center gap-1 text-[11px] mt-0.5 text-slate-400">
                 <School size={11} />
                 <span className="truncate max-w-[150px]">{teammate.college || "No college"}</span>
               </div>
@@ -129,31 +127,21 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* Meta */}
         <div className="flex flex-wrap gap-2 mb-4 text-xs">
-          <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs ${
-            isTeamSuggestion
-              ? "text-slate-300 bg-slate-800/50 border-slate-700/50"
-              : "text-slate-500 bg-slate-50 border-slate-100"
-          }`}>
-            <Briefcase size={11} /> {teammate.preferred_role}
+          <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-800 text-[10px] font-bold bg-slate-950/40 text-slate-300">
+            <Briefcase size={11} className="text-slate-400" /> {teammate.preferred_role}
           </span>
-          <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs ${
-            isTeamSuggestion
-              ? "text-slate-300 bg-slate-800/50 border-slate-700/50"
-              : "text-slate-500 bg-slate-50 border-slate-100"
-          }`}>
-            <AvailBadge status={teammate.availability} />
-          </span>
+          <AvailBadge status={teammate.availability} />
         </div>
 
         {/* Common Skills Highlight */}
         {!isTeamSuggestion && commonSkills.length > 0 && (
-          <div className="bg-blue-50/50 border border-blue-100/50 rounded-xl p-3 mb-4">
-            <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-              <Zap size={11} className="fill-blue-500 text-blue-500" /> Common Skills
+          <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-3 mb-4">
+            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <Zap size={11} className="fill-indigo-500 text-indigo-500" /> Common Skills
             </p>
             <div className="flex flex-wrap gap-1">
               {commonSkills.map(s => (
-                <span key={s} className="px-2 py-0.5 bg-blue-100/70 text-blue-700 rounded text-[10px] font-semibold">
+                <span key={s} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 rounded text-[9px] font-bold">
                   {s}
                 </span>
               ))}
@@ -163,9 +151,7 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
         {/* AI Insight */}
         {teammate.explanation && (
-          <p className={`text-xs leading-relaxed italic mb-4 border-l-2 pl-2.5 ${
-            isTeamSuggestion ? "text-slate-400 border-slate-750" : "text-slate-500 border-slate-200"
-          }`}>
+          <p className="text-xs leading-relaxed italic mb-4 border-l-2 pl-2.5 text-slate-350 border-slate-700">
             "{teammate.explanation}"
           </p>
         )}
@@ -173,21 +159,15 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
         {/* Skills & Interests Tags */}
         <div className="space-y-3 mb-6 flex-grow">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Skills</p>
+            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Skills</p>
             <div className="flex flex-wrap gap-1">
               {skills.slice(0, 5).map(s => (
-                <span key={s} className={`px-2.5 py-1 rounded-lg border text-xs font-semibold ${
-                  isTeamSuggestion
-                    ? "bg-slate-800/40 border-slate-700/30 text-slate-300"
-                    : "bg-slate-50 border-slate-100 text-slate-600"
-                }`}>
+                <span key={s} className="px-2.5 py-1 rounded-lg border bg-slate-800/40 border-slate-700/30 text-slate-300 text-xs font-semibold">
                   {s}
                 </span>
               ))}
               {skills.length > 5 && (
-                <span className={`px-2 py-1 rounded-lg text-[10px] font-semibold ${
-                  isTeamSuggestion ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"
-                }`}>
+                <span className="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-[10px] font-semibold">
                   +{skills.length - 5} more
                 </span>
               )}
@@ -196,48 +176,31 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
 
           {interests.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Project Focus</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Project Focus</p>
               <div className="flex flex-wrap gap-1">
-                {interests.map(i => (
-                  <span key={i} className={`px-2.5 py-1 rounded-lg border text-xs font-semibold ${
-                    isTeamSuggestion
-                      ? "bg-purple-950/30 border-purple-855/30 text-purple-300"
-                      : "bg-purple-50 border-purple-100/70 text-purple-600"
-                  }`}>
+                {interests.slice(0, 4).map(i => (
+                  <span key={i} className="px-2.5 py-0.5 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-300 text-[10px] font-bold">
                     {i}
                   </span>
                 ))}
+                {interests.length > 4 && (
+                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-semibold">
+                    +{interests.length - 4} more
+                  </span>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Past Project Experience Details */}
-        {teammate.past_hackathon && (
-          <div className={`border-t pt-4 mb-6 text-xs space-y-1 p-3 rounded-xl ${
-            isTeamSuggestion
-              ? "border-slate-800/40 bg-slate-900/30 text-slate-400"
-              : "border-slate-50 bg-slate-50/30 text-slate-500"
-          }`}>
-            <p className={`font-bold flex items-center gap-1 ${isTeamSuggestion ? "text-slate-300" : "text-slate-700"}`}>
-              <Star size={12} className="text-amber-500 fill-amber-500" /> {teammate.past_hackathon}
-            </p>
-            {teammate.past_project_name && (
-              <p className={isTeamSuggestion ? "text-slate-400" : "text-slate-600"}>Project: {teammate.past_project_name}</p>
-            )}
-          </div>
-        )}
-
-        {/* Interactive Breakdown */}
-        {teammate.breakdown && (
-          <div className={`border-t pt-4 mb-4 ${isTeamSuggestion ? "border-slate-850" : "border-slate-55"}`}>
+        {/* Dynamic Breakdown toggle */}
+        {teammate.scores && (
+          <div className="mb-5 border-t border-slate-800/60 pt-3">
             <button
               onClick={() => setShowBreakdown(!showBreakdown)}
-              className={`w-full flex items-center justify-between text-xs font-semibold ${
-                isTeamSuggestion ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-750"
-              }`}
+              className="w-full flex items-center justify-between text-xs text-slate-450 hover:text-slate-300 transition-colors cursor-pointer"
             >
-              <span>Match Diagnostics</span>
+              <span>Match Scoring Breakdown</span>
               {showBreakdown ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             <AnimatePresence>
@@ -246,71 +209,68 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="space-y-2 mt-3 overflow-hidden"
+                  className="overflow-hidden space-y-2 mt-3"
                 >
-                  <BreakdownBar label="Skills (40%)" value={teammate.breakdown.skillScore} max={40} color="bg-blue-600" />
-                  <BreakdownBar label="Interests (30%)" value={teammate.breakdown.interestScore} max={30} color="bg-purple-600" />
-                  <BreakdownBar label="Experience (20%)" value={teammate.breakdown.expScore} max={20} color="bg-amber-500" />
-                  <BreakdownBar label="Availability (10%)" value={teammate.breakdown.availScore} max={10} color="bg-emerald-500" />
+                  <BreakdownBar label="Skill Compatibility" value={teammate.scores.skills} max={10} color="bg-indigo-500" />
+                  <BreakdownBar label="Project Interests" value={teammate.scores.interests} max={10} color="bg-purple-500" />
+                  <BreakdownBar label="Experience Level" value={teammate.scores.experience} max={10} color="bg-amber-500" />
+                  <BreakdownBar label="Availability Match" value={teammate.scores.availability} max={10} color="bg-emerald-500" />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         )}
 
-        {/* Contact Links Grid (Replaces Legacy Chat Message Button) */}
+        {/* Actions */}
         <div className="grid grid-cols-2 gap-2 mt-auto">
-          {teammate.user_id !== parseInt(currentUserId) && onToggleSelect && (
+          {onToggleSelect && (
             <button
               onClick={() => onToggleSelect(teammate)}
-              className={`col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 border ${
+              className={`py-2 px-3 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer ${
                 isSelected
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-sm"
-                  : isTeamSuggestion
-                    ? "bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border-indigo-500/30 shadow-sm"
-                    : "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-sm"
+                  ? "bg-emerald-500/20 text-emerald-450 border-emerald-500/35 hover:bg-emerald-500/30"
+                  : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
               }`}
             >
-              {isSelected ? "✓ Selected (Click to remove)" : "+ Add to Team"}
+              {isSelected ? "Selected" : "Select Custom"}
             </button>
           )}
 
-          {teammate.contact_email ? (
-            <a
-              href={`mailto:${teammate.contact_email}?subject=TeamMatch%20AI%20-%20Let's%20Form%20a%20Hackathon%20Team!`}
-              className={`py-2 px-3 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
-                isTeamSuggestion
-                  ? "bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border-indigo-500/20"
-                  : "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-100"
-              }`}
-            >
-              <Mail size={13} /> Email
-            </a>
-          ) : (
-            <button disabled className={`py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
-              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
-            }`}>
-              <Mail size={13} /> Email
-            </button>
-          )}
+          <button
+            onClick={handleMessage}
+            className={`py-2 px-3 bg-gradient-to-r from-indigo-600 to-violet-650 hover:opacity-95 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-500/10 flex items-center justify-center gap-1.5 cursor-pointer ${
+              onToggleSelect ? "" : "col-span-2"
+            }`}
+          >
+            <Mail size={13} /> Chat / Invite
+          </button>
 
-          {teammate.linkedin_link ? (
+          {teammate.github_url ? (
             <a
-              href={teammate.linkedin_link}
+              href={teammate.github_url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`py-2 px-3 border rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
-                isTeamSuggestion
-                  ? "bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border-blue-500/20"
-                  : "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-100"
-              }`}
+              className="py-2 px-3 border rounded-xl font-bold transition-all text-xs bg-white/5 border-white/10 text-slate-200 hover:bg-white/10 flex items-center justify-center gap-1.5"
+            >
+              <Github size={13} /> GitHub
+            </a>
+          ) : (
+            <button disabled className="py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 bg-slate-950/40 text-slate-600 border-slate-900">
+              <Github size={13} /> GitHub
+            </button>
+          )}
+
+          {teammate.linkedin_url ? (
+            <a
+              href={teammate.linkedin_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-2 px-3 border rounded-xl font-bold transition-all text-xs bg-white/5 border-white/10 text-slate-200 hover:bg-white/10 flex items-center justify-center gap-1.5"
             >
               <Linkedin size={13} /> LinkedIn
             </a>
           ) : (
-            <button disabled className={`py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
-              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
-            }`}>
+            <button disabled className="py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 bg-slate-950/40 text-slate-600 border-slate-900">
               <Linkedin size={13} /> LinkedIn
             </button>
           )}
@@ -318,18 +278,12 @@ const TeammateCard = ({ teammate, currentUserId, onMessage, isTeamSuggestion, is
           {teammate.phone ? (
             <a
               href={`tel:${teammate.phone.replace(/\s+/g, "")}`}
-              className={`col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 ${
-                isTeamSuggestion
-                  ? "bg-slate-800 hover:bg-slate-750 text-slate-200"
-                  : "bg-slate-900 hover:bg-slate-800 text-white"
-              }`}
+              className="col-span-2 py-2 px-3 rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200"
             >
               <Phone size={13} /> Call / SMS ({teammate.phone})
             </a>
           ) : (
-            <button disabled className={`col-span-2 py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 ${
-              isTeamSuggestion ? "bg-slate-850 text-slate-600 border-slate-800/30" : "bg-slate-55 text-slate-300 border-slate-100"
-            }`}>
+            <button disabled className="col-span-2 py-2 px-3 border rounded-xl font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5 bg-slate-950/40 text-slate-600 border-slate-900">
               <Phone size={13} /> Call / SMS (Not Provided)
             </button>
           )}
@@ -359,6 +313,7 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
   const [tempTeamName, setTempTeamName] = useState("");
   const [modalType, setModalType] = useState("auto"); // "auto" or "custom"
   const [saveStatus, setSaveStatus] = useState(null); // { type: 'success' | 'error', message: '...' }
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleToggleSelect = useCallback((member) => {
     setSelectedMembers(prev => {
@@ -445,7 +400,9 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
   };
 
   const executeSaveTeam = async () => {
-    if (!tempTeamName.trim()) return;
+    if (!tempTeamName.trim() || isSaving) return;
+    setIsSaving(true);
+    setSaveStatus(null);
 
     try {
       let res;
@@ -480,6 +437,9 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
           },
           body: JSON.stringify({ members: memberIds })
         });
+        if (!resHealth.ok) {
+          throw new Error("Failed to calculate team health score.");
+        }
         const healthData = await resHealth.json();
         const finalHealth = healthData?.health?.health_score || 75;
 
@@ -514,8 +474,10 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
       console.error(e);
       setSaveStatus({
         type: "error",
-        message: "Error connecting to the database server."
+        message: e.message || "Error connecting to the database server."
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -548,23 +510,23 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
       {/* ─── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-extrabold text-white">
             {suggestedOnly ? "Top AI Matches" : "Find Teammates"}
           </h2>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <p className="text-slate-400 text-sm mt-0.5">
             {suggestedOnly ? "Based on your skills, interests, and experience." : "Search by skill or let AI find your best match."}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setHackathonMode(true); fetchMatches({ hackathon: true }); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 font-semibold text-sm hover:bg-amber-100 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-sm hover:bg-amber-500/20 transition-all cursor-pointer"
           >
-            <Zap size={16} className="fill-amber-400 text-amber-400" /> Hackathon Mode
+            <Zap size={15} className="fill-amber-400 text-amber-400" /> Hackathon Mode
           </button>
           <button onClick={fetchTeamBuilder}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-sm shadow-md shadow-purple-500/20 hover:opacity-90 transition-opacity">
-            <Users size={16} /> Build My Team
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-650 to-violet-600 text-white font-bold text-sm shadow-md shadow-indigo-500/20 hover:opacity-95 transition-all cursor-pointer">
+            <Users size={15} /> Build My Team
           </button>
         </div>
       </div>
@@ -573,36 +535,36 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
       <AnimatePresence>
         {showTeam && (
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-            className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2.5 rounded-xl text-white">
+            className="bg-slate-950/60 border border-slate-850/80 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-md">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-400 p-2.5 rounded-2xl shadow-md">
                   <Users size={18} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-100">AI Team Builder</h3>
-                  <p className="text-xs text-slate-400">Complementary teammates selected to balance your skills</p>
+                  <h3 className="font-extrabold text-white">AI Team Builder</h3>
+                  <p className="text-xs text-slate-450 font-medium">Complementary teammates selected to balance your skills</p>
                 </div>
               </div>
               <div className="flex gap-2 items-center">
                 {teamSuggestion.length > 0 && !teamLoading && (
                   <button
                     onClick={handleSaveTeam}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white rounded-xl font-bold text-xs shadow-md shadow-purple-500/10 transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-650 to-violet-600 hover:opacity-95 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
                   >
                     <CheckCircle2 size={13} /> Save Team
                   </button>
                 )}
-                <button onClick={fetchTeamBuilder} className="p-2 bg-slate-800 border border-slate-700 hover:bg-slate-750 text-slate-400 hover:text-white rounded-xl transition-colors">
-                  <RefreshCw size={15} className={teamLoading ? "animate-spin" : ""} />
+                <button onClick={fetchTeamBuilder} className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer">
+                  <RefreshCw size={14} className={teamLoading ? "animate-spin" : ""} />
                 </button>
-                <button onClick={() => setShowTeam(false)} className="p-2 bg-slate-800 border border-slate-700 hover:bg-slate-750 text-slate-400 hover:text-white rounded-xl transition-colors">
-                  <X size={15} />
+                <button onClick={() => setShowTeam(false)} className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer">
+                  <X size={14} />
                 </button>
               </div>
             </div>
             {teamLoading ? (
-              <div className="text-center py-8 text-slate-400 text-sm">Building your perfect team...</div>
+              <div className="text-center py-10 text-slate-400 text-sm">Building your perfect team...</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {teamSuggestion.map(t => (
@@ -616,7 +578,7 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
                     onToggleSelect={handleToggleSelect}
                   />
                 ))}
-                {teamSuggestion.length === 0 && <p className="col-span-4 text-center text-slate-400 text-sm py-4">Not enough diverse profiles yet. Search to find more!</p>}
+                {teamSuggestion.length === 0 && <p className="col-span-4 text-center text-slate-450 text-sm py-6">Not enough diverse profiles yet. Search to find more!</p>}
               </div>
             )}
           </motion.div>
@@ -625,61 +587,61 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
 
       {/* ─── Search Panel ────────────────────────────────────────────────────── */}
       {!suggestedOnly && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+        <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-lg p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Skills Needed</label>
+              <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2 block">Skills Needed</label>
               <input value={searchSkills} onChange={e => setSearchSkills(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                className="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-100 placeholder-slate-500 text-sm transition-all"
                 placeholder="React, Python, Node.js..." />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Interests</label>
+              <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2 block">Interests</label>
               <input value={searchInterests} onChange={e => setSearchInterests(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                className="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-100 placeholder-slate-500 text-sm transition-all"
                 placeholder="AI, FinTech, HealthTech..." />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">College Name</label>
+              <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2 block">College Name</label>
               <input value={searchCollege} onChange={e => setSearchCollege(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                className="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-100 placeholder-slate-500 text-sm transition-all"
                 placeholder="IIT, NIT, Stanford..." />
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs font-bold text-slate-400 flex items-center mr-1">Quick Skills:</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center mr-1">Quick Skills:</span>
             {SKILL_OPTIONS.map(s => (
               <button key={s} type="button"
                 onClick={() => setSearchSkills(prev => prev ? (prev.includes(s) ? prev : `${prev}, ${s}`) : s)}
-                className="px-3 py-1 rounded-full text-xs font-medium bg-slate-50 border border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all">
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:border-indigo-500/40 hover:text-white transition-all cursor-pointer">
                 {s}
               </button>
             ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs font-bold text-slate-400 flex items-center mr-1">Interests:</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center mr-1">Interests:</span>
             {INTEREST_OPTIONS.map(i => (
               <button key={i} type="button"
                 onClick={() => setSearchInterests(prev => prev ? (prev.includes(i) ? prev : `${prev}, ${i}`) : i)}
-                className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 border border-purple-200 text-purple-600 hover:bg-purple-100 transition-all">
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/5 border border-purple-500/20 text-purple-300 hover:bg-purple-500/15 hover:border-purple-500/40 transition-all cursor-pointer">
                 {i}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-3 pt-2 border-t border-slate-50">
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-800/60">
             <button type="button" onClick={() => fetchMatches()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md shadow-blue-500/20 text-sm">
+              className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-650 to-violet-600 text-white rounded-xl font-bold hover:opacity-95 transition-all shadow-md shadow-indigo-500/20 text-sm cursor-pointer">
               <Search size={16} /> Find Matches
             </button>
             <button type="button" onClick={() => setShowWeights(!showWeights)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-semibold hover:bg-slate-100 transition-colors text-sm">
-              <Filter size={16} /> Adjust Weights {totalWeight !== 100 && <span className="text-red-500 text-xs">({totalWeight}%)</span>}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 text-slate-300 rounded-xl font-bold hover:bg-white/10 transition-all text-sm cursor-pointer">
+              <Filter size={16} /> Adjust Weights {totalWeight !== 100 && <span className="text-red-400 text-xs font-bold">({totalWeight}%)</span>}
             </button>
             {hackathonMode && (
-              <button onClick={() => { setHackathonMode(false); }} className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors">
+              <button onClick={() => { setHackathonMode(false); }} className="flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 px-3 py-2 rounded-xl border border-amber-500/20 hover:bg-amber-500/20 transition-all cursor-pointer">
                 <X size={12} /> Hackathon Mode
               </button>
             )}
@@ -689,26 +651,26 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
           <AnimatePresence>
             {showWeights && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden pt-4 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-6">
+                className="overflow-hidden pt-4 border-t border-slate-800/60 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { key: "skillWeight", label: "Skill Compatibility", color: "accent-blue-600" },
-                  { key: "interestWeight", label: "Interest Similarity", color: "accent-purple-600" },
+                  { key: "skillWeight", label: "Skill Compatibility", color: "accent-indigo-500" },
+                  { key: "interestWeight", label: "Interest Similarity", color: "accent-purple-500" },
                   { key: "experienceWeight", label: "Experience Level", color: "accent-amber-500" },
                   { key: "availabilityWeight", label: "Availability", color: "accent-emerald-500" },
                 ].map(({ key, label, color }) => (
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium text-slate-700">{label}</span>
-                      <span className="font-bold text-slate-900">{weights[key]}%</span>
+                      <span className="font-semibold text-slate-300">{label}</span>
+                      <span className="font-bold text-white">{weights[key]}%</span>
                     </div>
                     <input type="range" min="0" max="100" value={weights[key]}
                       onChange={e => setWeights({ ...weights, [key]: parseInt(e.target.value) })}
-                      className={`w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer ${color}`} />
+                      className={`w-full h-2 bg-slate-850 rounded-full appearance-none cursor-pointer ${color}`} />
                   </div>
                 ))}
                 <div className="col-span-full flex justify-end">
                   <button onClick={() => setWeights({ skillWeight: 40, interestWeight: 30, experienceWeight: 20, availabilityWeight: 10 })}
-                    className="text-xs text-slate-400 hover:text-slate-600 font-medium">Reset to defaults</button>
+                    className="text-xs text-slate-500 hover:text-slate-350 font-bold cursor-pointer">Reset to defaults</button>
                 </div>
               </motion.div>
             )}
@@ -726,26 +688,26 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
             className="bg-slate-900 text-white rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg border border-slate-800"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 p-2.5 rounded-xl">
+              <div className="bg-indigo-650/20 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/20">
                 <Users size={20} />
               </div>
               <div>
                 <h4 className="font-bold text-sm text-slate-100">Custom Team Builder</h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Selected: <span className="text-indigo-400 font-semibold">{selectedMembers.map(m => m.full_name).join(", ")}</span>
+                <p className="text-xs text-slate-405 mt-0.5 font-medium">
+                  Selected: <span className="text-indigo-400 font-extrabold">{selectedMembers.map(m => m.full_name).join(", ")}</span>
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSaveCustomTeam}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors"
+                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-650 hover:opacity-95 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer"
               >
                 Save Team
               </button>
               <button
                 onClick={() => setSelectedMembers([])}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl font-bold text-xs transition-colors"
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 rounded-xl font-bold text-xs transition-colors cursor-pointer"
               >
                 Clear Selection
               </button>
@@ -756,31 +718,35 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
 
       {/* ─── Results Header & Filters ─────────────────────────────────────────── */}
       {(hasSearched || suggestedOnly) && (
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-md">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-450 uppercase tracking-widest">
             <Code size={14} /> Filter by:
           </div>
           {SKILL_OPTIONS.slice(0, 8).map(s => (
             <button key={s}
               onClick={() => setSelectedSkillFilters(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${selectedSkillFilters.includes(s) ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}>
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                selectedSkillFilters.includes(s)
+                  ? "bg-indigo-650 text-white border-indigo-600"
+                  : "bg-white/5 text-slate-300 border-white/10 hover:border-indigo-500/40 hover:text-white"
+              }`}>
               {s}
             </button>
           ))}
           <select value={expFilter} onChange={e => setExpFilter(e.target.value)}
-            className="text-xs font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600 outline-none">
+            className="text-xs font-bold border border-slate-800 rounded-xl px-3 py-1.5 bg-slate-900 text-slate-300 outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
             <option>Any</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            className="text-xs font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-600 outline-none ml-auto">
+            className="text-xs font-bold border border-slate-800 rounded-xl px-3 py-1.5 bg-slate-900 text-slate-300 outline-none ml-auto cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
             <option value="match">Best Match</option>
             <option value="experience">Experience</option>
           </select>
           {selectedSkillFilters.length > 0 && (
-            <button onClick={() => setSelectedSkillFilters([])} className="text-xs text-red-500 flex items-center gap-1">
+            <button onClick={() => setSelectedSkillFilters([])} className="text-xs text-red-400 font-bold flex items-center gap-1 cursor-pointer">
               <X size={12} /> Clear
             </button>
           )}
@@ -789,20 +755,20 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
 
       {/* ─── Loading ──────────────────────────────────────────────────────────── */}
       {loading && (
-        <div className="text-center py-20 space-y-3">
-          <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 font-medium text-sm">AI is analyzing profiles and finding best matches...</p>
+        <div className="text-center py-20 space-y-4">
+          <div className="w-12 h-12 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-450 font-bold text-sm">AI is analyzing vectors and finding best compatible teammates...</p>
         </div>
       )}
 
       {/* ─── Empty State ─────────────────────────────────────────────────────── */}
       {!suggestedOnly && !hasSearched && !loading && (
-        <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-slate-200">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
-            <Search className="text-blue-600" size={28} />
+        <div className="text-center py-24 bg-white/5 backdrop-blur-md rounded-2xl border border-dashed border-white/10 shadow-lg">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-5 border border-indigo-500/25 shadow-md">
+            <Search className="text-indigo-400" size={28} />
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Find Your Perfect Team</h3>
-          <p className="text-slate-500 max-w-sm mx-auto text-sm">Search by skills and interests above, or click <strong>"Build My Team"</strong> for instant AI-powered suggestions.</p>
+          <h3 className="text-xl font-bold text-white mb-2">Find Your Perfect Team</h3>
+          <p className="text-slate-400 max-w-sm mx-auto text-sm font-medium leading-relaxed">Search by skills and interests above, or click <strong className="text-indigo-300">"Build My Team"</strong> for instant AI-powered suggestion rosters.</p>
         </div>
       )}
 
@@ -810,14 +776,14 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
       {!loading && (hasSearched || suggestedOnly) && (
         <>
           {filteredTeammates.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200">
-              <p className="text-slate-500">No matches found. Try broadening your search!</p>
+            <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-2xl border border-dashed border-white/10">
+              <p className="text-slate-400 font-medium">No matches found. Try broadening your search skills or filters!</p>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-500"><span className="font-bold text-slate-900">{filteredTeammates.length}</span> matches found</p>
-                {hackathonMode && <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1"><Zap size={12} /> Available & Looking for team only</span>}
+                <p className="text-sm text-slate-450 font-medium">Found <span className="font-bold text-white">{filteredTeammates.length}</span> matching hacker profiles</p>
+                {hackathonMode && <span className="text-xs bg-amber-500/10 text-amber-405 border border-amber-500/20 px-3 py-1 rounded-full font-bold flex items-center gap-1"><Zap size={12} className="fill-amber-450 text-amber-450" /> Available & Looking for team only</span>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <AnimatePresence mode="popLayout">
@@ -848,7 +814,7 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => { if (!saveStatus) setShowSaveModal(false); }}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
             />
 
             {/* Modal Card */}
@@ -856,26 +822,26 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-100 shadow-2xl relative z-10 space-y-6"
+              className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative z-10 space-y-6 text-white"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl">
                   <Users size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Save Team Roster</h3>
-                  <p className="text-xs text-slate-500">Form your hackathon squad</p>
+                  <h3 className="font-bold text-white text-lg">Save Team Roster</h3>
+                  <p className="text-xs text-slate-400 font-medium">Form your hackathon squad</p>
                 </div>
               </div>
 
               {saveStatus ? (
                 <div className="space-y-4 py-4 text-center">
                   <div className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center ${
-                    saveStatus.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                    saveStatus.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-red-500/10 text-red-400 border border-red-500/15'
                   }`}>
                     {saveStatus.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
                   </div>
-                  <p className="text-sm font-semibold text-slate-800">{saveStatus.message}</p>
+                  <p className="text-sm font-semibold text-slate-300">{saveStatus.message}</p>
                   <button
                     onClick={() => {
                       setShowSaveModal(false);
@@ -883,7 +849,7 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
                       setTempTeamName("");
                       if (modalType === 'custom') setSelectedMembers([]);
                     }}
-                    className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors"
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                   >
                     Close
                   </button>
@@ -891,13 +857,13 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Team Name</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Team Name</label>
                     <input
                       type="text"
                       value={tempTeamName}
                       onChange={e => setTempTeamName(e.target.value)}
                       placeholder="e.g. Code Crusaders, Alpha Pack"
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-100 text-sm transition-all"
                       autoFocus
                     />
                   </div>
@@ -905,16 +871,17 @@ const FindTeammates = ({ suggestedOnly, onMessage, initialInterests }) => {
                   <div className="flex items-center justify-end gap-2 pt-2">
                     <button
                       onClick={() => setShowSaveModal(false)}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-xs transition-colors"
+                      disabled={isSaving}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-350 font-bold rounded-xl text-xs transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={executeSaveTeam}
-                      disabled={!tempTeamName.trim()}
-                      className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
+                      disabled={!tempTeamName.trim() || isSaving}
+                      className="px-5 py-2.5 bg-indigo-650 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
                     >
-                      Confirm Save
+                      {isSaving ? "Saving..." : "Confirm Save"}
                     </button>
                   </div>
                 </div>
