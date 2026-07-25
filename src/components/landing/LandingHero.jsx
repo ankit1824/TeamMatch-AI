@@ -4,15 +4,19 @@ import { BrainCircuit, Users, Code, Zap } from "lucide-react";
 
 const LandingHero = ({ onGetStarted }) => {
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-1/4 left-10 text-blue-400/10 p-4 transform -rotate-12">
+    <section className="relative pt-36 pb-24 lg:pt-52 lg:pb-36 overflow-hidden">
+      {/* Background radial glows */}
+      <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/3 right-1/10 w-96 h-96 bg-violet-600/10 rounded-full blur-[100px] pointer-events-none" />
+      
+      {/* Background floating icons */}
+      <div className="absolute top-1/4 left-10 text-indigo-500/5 p-4 transform -rotate-12 pointer-events-none">
         <Users size={120} />
       </div>
-      <div className="absolute top-1/3 right-10 text-blue-400/10 p-4 transform rotate-12">
+      <div className="absolute top-1/3 right-10 text-violet-500/5 p-4 transform rotate-12 pointer-events-none">
         <BrainCircuit size={150} />
       </div>
-      <div className="absolute bottom-10 left-1/4 text-blue-400/10 p-4">
+      <div className="absolute bottom-10 left-1/4 text-cyan-500/5 p-4 pointer-events-none">
         <Code size={100} />
       </div>
       
@@ -22,17 +26,17 @@ const LandingHero = ({ onGetStarted }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-sm font-semibold mb-8 shadow-sm">
-            <Zap size={16} className="text-yellow-500 fill-yellow-500" />
-            <span>The #1 Hackathon Matching Platform</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-8 shadow-inner">
+            <Zap size={14} className="text-amber-400 fill-amber-400" />
+            <span>The #1 AI-Driven Teammate Recommender</span>
           </div>
  
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
-            Find Your Perfect Hackathon Team in <span className="text-blue-600 bg-clip-text">Seconds with AI</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+            Find Your Perfect Hackathon Team in <span className="bg-gradient-to-r from-cyan-400 via-indigo-400 to-violet-500 bg-clip-text text-transparent">Seconds with AI</span>
           </h1>
           
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-slate-600 mb-10 leading-relaxed font-normal">
-            Hackathon participants waste hours matching skills – our platform analyzes your skills, interests, and experience to suggest the best teammates intelligently.
+          <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-slate-400 mb-10 leading-relaxed font-normal">
+            No more manual spreadsheet searching. Our machine learning engine analyzes your skill vectors, interests, and availability to suggest perfectly balanced, complementary squad members.
           </p>
           
           <motion.div 
@@ -42,25 +46,25 @@ const LandingHero = ({ onGetStarted }) => {
           >
             <button
               onClick={onGetStarted}
-              className="px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-xl shadow-blue-500/40 transition-all flex items-center gap-2 group"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-650 to-violet-600 hover:opacity-95 text-white font-bold text-lg shadow-xl shadow-indigo-500/25 transition-all flex items-center gap-2 group cursor-pointer"
             >
               Get Started – Create Profile
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              <span className="group-hover:translate-x-1.5 transition-transform">→</span>
             </button>
           </motion.div>
           
-          <div className="mt-16 flex flex-wrap justify-center gap-4 sm:gap-8 opacity-80">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm text-sm font-medium text-slate-700">
-              <Code size={16} className="text-blue-500" />
+          <div className="mt-20 flex flex-wrap justify-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-xs font-semibold text-slate-300 shadow-sm">
+              <Code size={14} className="text-cyan-400" />
               Powered by React
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm text-sm font-medium text-slate-700">
-              <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center text-[10px] text-white font-bold">F</div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-xs font-semibold text-slate-300 shadow-sm">
+              <div className="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center text-[9px] text-white font-black">F</div>
               FastAPI (Python) Backend
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm text-sm font-medium text-slate-700">
-              <BrainCircuit size={16} className="text-purple-500" />
-              AI Matching Algorithm
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-xs font-semibold text-slate-300 shadow-sm">
+              <BrainCircuit size={14} className="text-violet-400" />
+              KNN & K-Means Engine
             </div>
           </div>
         </motion.div>
