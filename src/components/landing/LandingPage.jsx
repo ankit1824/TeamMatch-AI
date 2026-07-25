@@ -7,7 +7,7 @@ import LandingFooter from "./LandingFooter";
 
 export default function LandingPage({ onSignIn, onSignUp }) {
   return (
-    <div className="min-h-screen font-sans bg-gradient-to-br from-[#E3F2FD] to-[#BBDEFB]">
+    <div className="min-h-screen font-sans bg-gradient-to-b from-[#030712] via-[#090d1a] to-[#020617] text-slate-100 overflow-hidden">
       <LandingHeader onSignIn={onSignIn} onSignUp={onSignUp} />
       <main>
         <LandingHero onGetStarted={onSignUp} />
