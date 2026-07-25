@@ -16,16 +16,16 @@ const MessageBubble = memo(({ msg, isMe }) => (
   >
     <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
       isMe
-        ? "bg-blue-600 text-white rounded-tr-none shadow-sm shadow-blue-200"
-        : "bg-gray-100 text-gray-900 rounded-tl-none"
+        ? "bg-gradient-to-br from-indigo-650 to-violet-600 text-white rounded-tr-none shadow-md shadow-indigo-500/10"
+        : "bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700/50"
     }`}>
       {!isMe && (
-        <p className="text-[10px] font-bold opacity-60 mb-0.5">{msg.sender_name}</p>
+        <p className="text-[10px] font-bold text-slate-400 mb-0.5">{msg.sender_name}</p>
       )}
       <p className="text-sm leading-relaxed">{msg.text}</p>
       <div className={`flex items-center mt-1 opacity-50 text-[9px] ${isMe ? "justify-end" : "justify-start"}`}>
         {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        {isMe && <Check size={10} className="ml-1" />}
+        {isMe && <Check size={10} className="ml-1 text-indigo-200" />}
       </div>
     </div>
   </motion.div>
@@ -180,46 +180,46 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
 
   // ── Conversation list ───────────────────────────────────────────────────────
   const renderConversationList = () => (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="p-5 border-b border-gray-100 bg-gray-50">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <MessageSquare size={20} className="text-blue-600" /> Messages
+    <div className="flex flex-col h-full bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 shadow-lg overflow-hidden">
+      <div className="p-5 border-b border-slate-800/60 bg-slate-900/80">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <MessageSquare size={18} className="text-indigo-400" /> Messages
         </h2>
       </div>
       <div className="flex-grow overflow-y-auto">
         {loadingConversations ? (
           <div className="flex justify-center items-center h-40">
-            <Loader2 className="animate-spin text-blue-500" size={28} />
+            <Loader2 className="animate-spin text-indigo-500" size={28} />
           </div>
         ) : conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400 p-8 text-center">
-            <div className="p-4 bg-gray-50 rounded-2xl mb-4">
-              <MessageSquare size={32} />
+          <div className="flex flex-col items-center justify-center h-64 text-slate-400 p-8 text-center">
+            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-slate-400 shadow-md">
+              <MessageSquare size={28} />
             </div>
-            <p className="font-semibold text-gray-500 mb-1">No conversations yet</p>
-            <p className="text-sm">Find a teammate and hit "Message" to start chatting!</p>
+            <p className="font-bold text-slate-200 mb-1">No conversations yet</p>
+            <p className="text-xs text-slate-450 font-medium">Find a teammate and hit "Message" to start chatting!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-slate-800/40">
             {conversations.map((conv) => (
               <button
                 key={conv.room_id}
                 onClick={() => openRoom(conv.room_id, conv.other_user_name)}
-                className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left ${
-                  activeRoom === conv.room_id ? "bg-blue-50/60 border-l-2 border-blue-500" : ""
+                className={`w-full p-4 flex items-center gap-3 hover:bg-white/5 transition-all text-left cursor-pointer ${
+                  activeRoom === conv.room_id ? "bg-indigo-500/10 border-l-2 border-indigo-500" : ""
                 }`}
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 text-white rounded-full shrink-0 flex items-center justify-center font-bold text-base">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-650 text-white rounded-full shrink-0 flex items-center justify-center font-bold text-base border border-white/5">
                   {conv.other_user_name?.[0]?.toUpperCase() || <User size={16} />}
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-baseline mb-0.5">
-                    <h4 className="font-bold text-gray-900 text-sm truncate">{conv.other_user_name}</h4>
-                    <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
+                    <h4 className="font-bold text-white text-sm truncate">{conv.other_user_name}</h4>
+                    <span className="text-[9px] text-slate-500 whitespace-nowrap ml-2">
                       {conv.last_timestamp ? new Date(conv.last_timestamp).toLocaleDateString() : ""}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 truncate">{conv.last_message || "Start the conversation…"}</p>
+                  <p className="text-xs text-slate-400 truncate font-medium">{conv.last_message || "Start the conversation…"}</p>
                 </div>
               </button>
             ))}
@@ -239,18 +239,18 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
       <div className="hidden lg:block lg:col-span-1 h-full">{renderConversationList()}</div>
 
       {/* Chat Window */}
-      <div className="lg:col-span-2 flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="lg:col-span-2 flex flex-col h-full bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white">
-          <button onClick={() => setActiveRoom(null)} className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <div className="p-4 border-b border-slate-800/60 flex items-center gap-3 bg-slate-900/80">
+          <button onClick={() => setActiveRoom(null)} className="lg:hidden p-2 hover:bg-white/5 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white">
             <ArrowLeft size={18} />
           </button>
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+          <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-650 text-white rounded-full flex items-center justify-center font-bold border border-white/5">
             {recipientName?.[0]?.toUpperCase() || "?"}
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-sm">{recipientName || "Chat"}</h3>
-            <p className="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
+            <h3 className="font-bold text-white text-sm">{recipientName || "Chat"}</h3>
+            <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> ONLINE
             </p>
           </div>
@@ -258,9 +258,9 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
 
         {/* Load more */}
         {hasMore && (
-          <div className="text-center py-2 border-b border-gray-50">
+          <div className="text-center py-2 border-b border-slate-850 bg-slate-900/40">
             <button onClick={loadMore} disabled={loadingMore}
-              className="text-xs text-blue-600 font-semibold flex items-center gap-1 mx-auto hover:underline">
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1 mx-auto hover:underline cursor-pointer">
               {loadingMore ? <Loader2 size={12} className="animate-spin" /> : <ChevronUp size={12} />}
               {loadingMore ? "Loading…" : "Load older messages"}
             </button>
@@ -268,18 +268,18 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
         )}
 
         {/* Messages */}
-        <div ref={scrollRef} className="flex-grow p-4 overflow-y-auto space-y-3 bg-gray-50/30">
+        <div ref={scrollRef} className="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-950/20">
           {loadingMessages ? (
             <div className="flex justify-center items-center h-full">
-              <Loader2 className="animate-spin text-blue-500" size={28} />
+              <Loader2 className="animate-spin text-indigo-500" size={28} />
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
-              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
+              <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-4 text-slate-400 shadow-md">
                 <MessageSquare size={28} />
               </div>
-              <p className="font-semibold text-gray-500 mb-1">Start the conversation</p>
-              <p className="text-sm">Say hello to {recipientName}! 👋</p>
+              <p className="font-bold text-slate-200 mb-1">Start the conversation</p>
+              <p className="text-xs text-slate-450 font-medium">Say hello to {recipientName}! 👋</p>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -295,7 +295,7 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
         </div>
 
         {/* Input */}
-        <form onSubmit={sendMessage} className="p-3 border-t border-gray-100 bg-white">
+        <form onSubmit={sendMessage} className="p-3 border-t border-slate-800/60 bg-slate-900/80">
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -303,13 +303,13 @@ const Chat = ({ initialRoomId, initialRecipientName }) => {
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Message ${recipientName || "…"}`}
-              className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all"
+              className="flex-1 px-4 py-2.5 bg-slate-950/80 border border-slate-850 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-slate-100 text-sm transition-all placeholder-slate-500"
               autoComplete="off"
             />
             <button
               type="submit"
               disabled={!inputText.trim() || sending}
-              className="w-10 h-10 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 flex items-center justify-center shrink-0"
+              className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-650 hover:opacity-95 text-white rounded-xl shadow-lg shadow-indigo-500/15 transition-all disabled:opacity-40 flex items-center justify-center shrink-0 cursor-pointer"
             >
               {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>
