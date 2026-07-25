@@ -83,6 +83,19 @@ def get_recommendations(student_id, top_n=5, metric='cosine'):
     KNN Matchmaker: Computes complementary profiles using K-Nearest Neighbors
     with Cosine Similarity on inverted skills vectors.
     """
+    import json
+    from engine.redis_client import redis_client
+
+    cache_key = f"teammatch:recs:{student_id}:{metric}:n{top_n}"
+    cached_val = redis_client.get(cache_key)
+    if cached_val:
+        try:
+            print(f"CACHE HIT: Teammate recommendations found in Redis for user {student_id}")
+            return json.loads(cached_val)
+        except Exception:
+            pass
+
+    print(f"CACHE MISS: Computing teammate recommendations via KNN for user {student_id}")
     students = get_all_students()
     if len(students) < 2:
         return []
@@ -139,7 +152,13 @@ def get_recommendations(student_id, top_n=5, metric='cosine'):
             "compatibility_score": round(pct, 1)
         })
         
-    return sorted(recommendations, key=lambda x: x['compatibility_score'], reverse=True)
+    recommendations_sorted = sorted(recommendations, key=lambda x: x['compatibility_score'], reverse=True)
+    try:
+        redis_client.set(cache_key, json.dumps(recommendations_sorted), ttl=86400)
+    except Exception:
+        pass
+        
+    return recommendations_sorted
 
 def calculate_ml_team_health(team_members, student_cluster_map=None, k_val=3, students=None, kmeans=None, cluster_labels=None):
     """
