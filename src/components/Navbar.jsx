@@ -14,25 +14,27 @@ const Navbar = ({ activeTab, setActiveTab }) => {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-[#030712]/40 backdrop-blur-lg border-b border-white/5 sticky top-0 z-50 shadow-lg shadow-black/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
-            <span className="text-xl font-bold text-indigo-600">TeamMatch AI</span>
+            <span className="text-xl font-extrabold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
+              TeamMatch <span className="text-indigo-400 font-medium">AI</span>
+            </span>
           </div>
           
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex space-x-4">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${
                   activeTab === item.id
-                    ? "text-indigo-600 bg-indigo-50"
-                    : "text-gray-500 hover:text-indigo-600 hover:bg-gray-50"
+                    ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-inner"
+                    : "text-slate-450 hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
               >
-                <item.icon size={18} />
+                <item.icon size={16} />
                 <span>{item.label}</span>
               </button>
             ))}
@@ -41,9 +43,9 @@ const Navbar = ({ activeTab, setActiveTab }) => {
           <div className="flex items-center">
             <button
               onClick={logout}
-              className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all cursor-pointer"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
