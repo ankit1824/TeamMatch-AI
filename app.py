@@ -16,6 +16,7 @@ from database import (
 from engine.ml_pipeline import (
     get_recommendations, calculate_ml_team_health, get_ml_team_recommendations
 )
+from engine.redis_client import redis_client
 
 app = FastAPI(
     title="TeamMatch AI - ML REST API",
@@ -143,6 +144,7 @@ async def api_register(request: Request):
         }
         
         add_student(student_profile)
+        redis_client.clear_pattern("teammatch:recs:*")
         # Return student profile details excluding the credentials
         new_student = get_student_by_email(data['email'])
         student_data = dict(new_student)
@@ -221,6 +223,7 @@ async def api_update_student(request: Request):
         }
         
         update_student(student_id, student_profile)
+        redis_client.clear_pattern("teammatch:recs:*")
         return {"message": "Profile updated successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -255,18 +258,6 @@ async def api_recommend(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/team-health")
-async def api_team_health(request: Request):
-    """ML Team Diagnostics: Uses K-Means group assignments to compute health score."""
-    data = await request.json()
-    if not data or 'members' not in data:
-        raise HTTPException(status_code=400, detail="members list is required")
-        
-    try:
-        result = calculate_ml_team_health(data['members'])
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/team-recommend")
 async def api_team_recommend(request: Request):
@@ -297,13 +288,22 @@ async def api_get_teams(request: Request):
             
             # Filter: only show the team if the logged-in user is a member of it!
             if user_id in member_ids:
+                team_members = []
+                for mid in member_ids:
+                    student = get_student_by_id(int(mid))
+                    if student:
+                        team_members.append(student)
+                
+                health_data = calculate_ml_team_health(team_members)
+                
                 formatted_teams.append({
                     "id": t["team_id"],
                     "team_name": t["team_name"],
                     "description": t["description"],
                     "health_score": t["health_score"],
                     "members": member_ids,
-                    "created_at": t['created_at']
+                    "created_at": t['created_at'],
+                    "gaps": health_data.get("gaps", [])
                 })
         return formatted_teams
     except Exception as e:
@@ -432,6 +432,7 @@ async def api_post_profile(request: Request):
     }
     
     update_student(user_id, student_profile)
+    redis_client.clear_pattern("teammatch:recs:*")
     return {"success": True}
 
 @app.post("/api/match/{userId}")
