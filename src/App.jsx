@@ -10,7 +10,7 @@ const AppContent = () => {
 
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen font-sans bg-gray-50">
+      <div className="min-h-screen font-sans bg-[#030712] text-slate-100">
         <Dashboard />
       </div>
     );
@@ -18,11 +18,11 @@ const AppContent = () => {
 
   if (showAuth) {
     return (
-      <div className="min-h-screen font-sans relative">
+      <div className="min-h-screen font-sans relative bg-[#030712]">
         <div className="absolute top-4 left-4 z-50">
           <button 
             onClick={() => setShowAuth(false)} 
-            className="px-4 py-2 rounded-lg bg-white/80 backdrop-blur-sm border shadow-sm text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-white transition-all"
+            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 shadow-lg text-sm font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
           >
             ← Back to Home
           </button>
